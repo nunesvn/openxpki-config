@@ -1,0 +1,105 @@
+## Written 2014 by Scott Hardin for the OpenXPKI project
+## Copyright (C) 2005-2014 by The OpenXPKI Project
+
+%define pkgname openxpki-config
+%define filelist %{name}-%{version}-filelist
+%define NVR %{name}-%{version}-%{release}
+%define maketest 0
+%define __perl /usr/bin/perl
+
+name:      %{pkgname}
+summary:   OpenXPKI Configuration
+version:   @VERSION@
+release:   @RELEASE@
+vendor:    White Rabbit Security GmbH
+packager:  Scott Hardin <shardin@whiterabbitsecurity.com>
+license:   Apache
+group:     Applications/Tools
+url:       http://www.whiterabbitsecurity.com
+source:    %{name}-%{version}.tar.gz
+buildroot: %{_tmppath}/%{name}-%{version}-%(id -u -n)
+prefix:    %(echo %{_prefix})
+AutoReqProv: no
+BuildArch: noarch
+
+%description
+OpenXPKI Configuration
+
+Packaging information:
+Git commit hash:       @GIT_COMMIT_HASH@
+#Git description:       @GIT_DESCRIPTION@
+Git tags:              @GIT_TAGS@
+
+%prep
+%setup
+
+%build
+
+%install
+[ "%{buildroot}" != "/" ] && rm -rf %{buildroot}
+PERL=%{__perl}
+
+# 'install' files
+mkdir -p "%{buildroot}"
+make install DESTDIR="%{buildroot}"
+
+# create extra empty directories
+install -d %{buildroot}/var/openxpki
+install -d %{buildroot}/var/log/openxpki
+
+echo "DEBUG: begin contents of %{buildroot}"
+find %{buildroot}
+echo "DEBUG: end contents of %{buildroot}"
+
+%{__perl} -MFile::Find -le '
+    find({ wanted => \&wanted, no_chdir => 1}, "%{buildroot}");
+    #print "%doc  README.md";
+    for my $x (sort @dirs, @files) {
+        push @ret, $x unless indirs($x);
+        }
+    # putting quotes around files allows for spaces in the names
+    print join "\n", map { "\"" . $_ . "\"" } sort @ret;
+
+    sub wanted {
+        return if /auto$/;
+
+        local $_ = $File::Find::name;
+        my $f = $_; s|^\Q%{buildroot}\E||;
+        return unless length;
+        return $files[@files] = $_ if -f $f or -l $f;
+
+        $d = $_;
+        /\Q$d\E/ && return for reverse sort @INC;
+        $d =~ /\Q$_\E/ && return
+            for qw|/etc %_prefix/man %_prefix/bin %_prefix/share /srv /var /opt |;
+
+        $dirs[@dirs] = $_;
+        }
+
+    sub indirs {
+        my $x = shift;
+        $x =~ /^\Q$_\E\// && $x ne $_ && return 1 for @dirs;
+        }
+    ' > %filelist
+
+[ -z %filelist ] && {
+    echo "ERROR: empty %files listing"
+    exit -1
+    }
+
+echo "DEBUG: begin %files listing"
+cat %filelist
+echo "DEBUG: end %files listing"
+
+%clean
+[ "%{buildroot}" != "/" ] && rm -rf %{buildroot}
+
+%files -f %filelist
+%attr(0755,openxpki,openxpki) /var/openxpki
+%attr(0775,openxpki,openxpki) /var/log/openxpki
+%defattr(-,root,root)
+
+
+%changelog
+* Tue Aug 06 2019 shardin@whiterabbitsecurity.com
+- Initial build
