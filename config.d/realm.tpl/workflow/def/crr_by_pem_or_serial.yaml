@@ -1,0 +1,140 @@
+head:
+    prefix: crrpem
+
+state:
+    INITIAL:
+        action:
+          - initialize check_authorized_signer > CHECK_AUTHORIZATION
+
+    CHECK_AUTHORIZATION:
+        autorun: 1
+        action:
+         - calculate_cert_identifier > AUTHORIZED ? global_is_signer_signature_valid has_certificate_set 
+         - search_certificate_by_serial > CHECK_FOUND ? global_is_signer_signature_valid has_serial_set
+         - global_set_error_signer_not_authorized > REJECTED ? !global_is_signer_signature_valid
+
+    CHECK_FOUND:
+        autorun: 1
+        action: 
+          - global_noop > AUTHORIZED ? is_serial_found
+          - global_set_error_search_has_no_matches > FAILURE ? !is_serial_found
+        
+    AUTHORIZED:
+        autorun: 1
+        action:
+          - global_cancel > SUCCESS ?  !global_is_not_yet_revoked_or_pending can_be_revoked_here
+          - set_reason_code global_persist_crr global_nice_revoke_certificate unpublish_certificate > SUCCESS ? global_is_not_yet_revoked_or_pending can_be_revoked_here
+          - global_set_error_rejected > REJECTED ? !can_be_revoked_here
+
+    FAILURE:
+        label: I18N_OPENXPKI_UI_WORKFLOW_STATE_EXPORT_PRIVATEKEY_FAILURE_LABEL
+        description: I18N_OPENXPKI_UI_WORKFLOW_STATE_EXPORT_PRIVATEKEY_FAILURE_DESC
+        output:
+          - cert_identifier
+          - error_code
+
+    SUCCESS:
+        label: I18N_OPENXPKI_UI_WORKFLOW_STATE_EXPORT_PRIVATEKEY_SUCCESS_LABEL
+        description: I18N_OPENXPKI_UI_WORKFLOW_STATE_EXPORT_PRIVATEKEY_SUCCESS_DESC
+        output:
+         - cert_identifier
+         - _export 
+
+    REJECTED: 
+        output:
+          - cert_identifier
+          - error_code
+
+action:
+    initialize:
+        class: OpenXPKI::Server::Workflow::Activity::Tools::SetSource
+        input:
+          - certificate
+          - serial 
+          - server
+          - interface
+          - signer_cert
+        validator:
+          - has_serial_or_certificate
+
+    check_authorized_signer:
+        class: OpenXPKI::Server::Workflow::Activity::Tools::EvaluateSignerTrust
+        param:
+            _map_rules: "[% context.interface %].[% context.server %].authorized_signer"
+
+    calculate_cert_identifier:
+        class: OpenXPKI::Server::Workflow::Activity::Tools::GetCertificateIdentifier
+
+    set_reason_code:
+        class: OpenXPKI::Server::Workflow::Activity::Tools::SetContext
+        param:
+            reason_code: superseeded
+
+    search_certificate_by_serial:
+        class: OpenXPKI::Server::Workflow::Activity::Tools::SearchCertificates
+        param:
+            _map_cert_serial: $serial
+            entity_only: 1
+            limit: single 
+            include_revoked: 1
+            include_expired: 1
+
+    unpublish_certificate:
+        class: OpenXPKI::Server::Workflow::Activity::Tools::TriggerCertificatePublish
+        param: 
+            unpublish: 1
+
+condition:
+    can_be_revoked_here:
+        class: OpenXPKI::Server::Workflow::Condition::MatchRule
+        param:
+           _map_config_path:  "[% context.interface %].[% context.server %].revocation_rules"
+
+    has_certificate_set:
+       class: Workflow::Condition::Evaluate
+       param:
+            test: $context->{certificate}
+
+    has_serial_set:
+       class: Workflow::Condition::Evaluate
+       param:
+            test: $context->{serial}
+
+    is_serial_found: 
+        class: Workflow::Condition::Evaluate
+        param:
+            test: $context->{cert_identifier}
+
+
+validator:
+    has_serial_or_certificate:
+        class:  OpenXPKI::Server::Workflow::Validator::BooleanHasFields
+        param:
+            operator: xor
+        arg:
+         - $certificate
+         - $serial
+
+field:
+    serial:
+        name: serial
+        label: Seriennummer
+        api_type: Str
+
+acl:
+    CA Operator:
+        creator: any
+
+    RA Operator:
+        creator: any
+        fail: 1
+        resume: 1
+        wakeup: 1
+        history: 1
+        techlog: 1
+        attribute: 1
+        context: 1
+
+    System:
+        creator: any
+
