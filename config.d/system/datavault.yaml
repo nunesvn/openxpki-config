@@ -1,0 +1,6 @@
+ignore_validity: 0
+
+enc_key:
+    expiration_date: +01
+    dynamic_iv: 1
+
