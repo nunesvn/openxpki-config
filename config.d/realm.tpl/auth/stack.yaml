@@ -1,17 +1,5 @@
-Anonymous:
-    handler: Anonymous
-
-User:
-    handler: User NoAuth
-
 Operator:
     handler: Operator Password
-
-Testing:
-    handler: TestAccounts
-
-OTP:
-  handler: OneTimePassword
 
 Certificate:
     handler: Certificate

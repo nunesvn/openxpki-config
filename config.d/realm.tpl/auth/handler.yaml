@@ -6,74 +6,13 @@ Certificate:
     trust_anchor:
         realm: democa
 
-Anonymous:
-    type: Anonymous
-    label: Anonymous
-
-User NoAuth:
-    type: External
-    label: User
-    command: /bin/true
-    description: I18N_OPENXPKI_CONFIG_AUTH_HANDLER_DESCRIPTION_USER
-    role: User
-    env:
-       LOGIN: __USER__
-
-User Password:
-    type: Password
-    label: User Password
-    description: I18N_OPENXPKI_CONFIG_AUTH_HANDLER_DESCRIPTION_PASSWORD
-    # Users are taken from a yaml file using a connector
-    user@: connector:auth.connector.userdb
-
 Operator Password:
-    type: Password
-    label: Operator Password
-    description: I18N_OPENXPKI_CONFIG_AUTH_HANDLER_DESCRIPTION_PASSWORD
-    # The passwords can be generated with "openxpkiadm hashpwd"
-    # The password below is "openxpki" for all three users
+    type: Connector
     role: RA Operator
-    user:
-        raop: "{ssha}JQ2BAoHQZQgecmNjGF143k4U2st6bE5B"
-        raop2: "{ssha}JQ2BAoHQZQgecmNjGF143k4U2st6bE5B"
+    source@: connector:auth.connector.raop-local
 
 System:
     type: Anonymous
     label: System
     role: System
-
-OneTimePassword:
-  type: OneTimePassword
-  salt: openxpki
-  role: User
-
-# Sample using a Password "bind" connector
-Password Connector:
-    type: Connector
-    label: User Password
-    description: I18N_OPENXPKI_CONFIG_AUTH_HANDLER_DESCRIPTION_PASSWORD
-    role: User
-    source@: connector:auth.connector.localuser
-
-# Accounts for testing, Password for all accounts is "openxpki"
-TestAccounts:
-    type: Password
-    label: Test Accounts
-    user:
-        caop:
-            digest: "{ssha}JQ2BAoHQZQgecmNjGF143k4U2st6bE5B"
-            role: CA Operator
-        raop:
-            digest: "{ssha}JQ2BAoHQZQgecmNjGF143k4U2st6bE5B"
-            role: RA Operator
-        raop2:
-            digest: "{ssha}JQ2BAoHQZQgecmNjGF143k4U2st6bE5B"
-            role: RA Operator
-        user:
-            digest: "{ssha}JQ2BAoHQZQgecmNjGF143k4U2st6bE5B"
-            role: User
-        user2:
-            digest: "{ssha}JQ2BAoHQZQgecmNjGF143k4U2st6bE5B"
-            role: User
-
 

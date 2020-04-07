@@ -1,0 +1,6 @@
+# file must hold one user per line, "login: {scheme}digest"
+# digest can be created with "openxpkiadm hashpw"
+# this is NOT a yaml file so do NOT use quotes around the hashes
+raop: {ssha}JQ2BAoHQZQgecmNjGF143k4U2st6bE5B
+raop2: {ssha}JQ2BAoHQZQgecmNjGF143k4U2st6bE5B
+

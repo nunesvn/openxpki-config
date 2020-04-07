@@ -19,6 +19,3 @@ System:
 # the anon role - anything unauth'd
 Anonymous: 
     label: Anonymous
-
-SmartCard:
-    label: SmartCard

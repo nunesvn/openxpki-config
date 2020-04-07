@@ -1,12 +1,23 @@
-# The main userdb 
-# Must contain a Yaml hash of the form for each user:
-# John Doe:
-#    digest: "{ssha}9DgilxbKtDVpSW86NjCzcnUkuBtzYWx0"
-#    role: User
-#
-# Use the openxpkiadm tool to create the password hashes
+raop-local:
+    class: Connector::Builtin::Authentication::PasswordScheme
+    # file must hold one user per line, "login: {scheme}digest"
+    # digest can be created with "openxpkiadm hashpw"
+    LOCATION: /etc/openxpki/local/operators.yaml
 
-userdb:
-    class: Connector::Proxy::YAML
-    LOCATION: /home/pkiadm/userdb.yaml
+user-ad:
+    class: Connector::Builtin::Authentication::LDAP
+    LOCATION: ldap://ldap
+    base: dc=openxpki,dc=org
+    binddn@: credentials.ad.binddn
+    password@: credentials.ad.password
+    filter: "(mail=[% LOGIN %])"
+
+raop-ad:
+    class: Connector::Builtin::Authentication::LDAP
+    LOCATION: ldap://ldap
+    binddn:  cn=admin,dc=openxpki,dc=org
+    binddn@: credentials.ad.binddn
+    password@: credentials.ad.password
+    groupdn: "cn=RA Operator,ou=SecurityGroups,dc=openxpki,dc=org"
+    filter: "(mail=[% LOGIN %])"
 
