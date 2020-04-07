@@ -1,0 +1,84 @@
+head:
+    prefix: unlock
+    label: I18N_OPENXPKI_UI_WORKFLOW_TYPE_RELEASE_LOCK_LABEL
+    description: I18N_OPENXPKI_UI_WORKFLOW_TYPE_RELEASE_LOCK_DESC
+
+state:
+    INITIAL:
+        action: initialize check_for_existing_workflow > CHECK_EXISTING_WORKFLOW
+
+    CHECK_EXISTING_WORKFLOW:
+        autorun: 1
+        action:
+         - global_set_error_search_has_no_matches > FAILURE ? !has_request_pending
+         - global_noop2 > SHOW_LOCK ? has_request_pending !global_is_system_role
+         - global_release_lock > SUCCESS ? has_request_pending global_is_system_role
+
+    SHOW_LOCK:
+        action:
+         - global_release_lock > SUCCESS
+         - global_noop > CANCELED
+        output:
+         - transaction_id
+         - request_workflow_id
+        button:
+          global_release_lock:
+            label: I18N_OPENXPKI_UI_WORKFLOW_ACTION_RELEASE_LOCK_LABEL
+            format: expected
+          global_noop:
+            label: I18N_OPENXPKI_UI_WORKFLOW_ACTION_GLOBAL_CANCEL_LABEL
+            format: failure
+
+    CANCELED:
+        output:
+         - transaction_id
+
+    SUCCESS:
+        output:
+         - transaction_id
+
+    FAILURE:
+        label: I18N_OPENXPKI_UI_WORKFLOW_STATE_SEARCH_SCEP_NORESULT_LABEL
+        description: I18N_OPENXPKI_UI_WORKFLOW_STATE_SEARCH_SCEP_NORESULT_DESC
+        status:
+            level: error
+            message: I18N_OPENXPKI_UI_SEARCH_HAS_NO_MATCHES
+        output:
+         - transaction_id
+         - error_code
+
+action:
+    initialize:
+        class: OpenXPKI::Server::Workflow::Activity::Noop
+        input:
+            - transaction_id
+
+    check_for_existing_workflow:
+        class: OpenXPKI::Server::Workflow::Activity::Tools::Datapool::GetEntry
+        param:
+            namespace: transaction_id
+            _map_key: $transaction_id
+            target_key: request_workflow_id
+
+condition:
+    has_request_pending:
+        class: Workflow::Condition::Evaluate
+        param:
+            test: $context->{request_workflow_id}
+
+acl:
+    CA Operator:
+        creator: any
+
+    RA Operator:
+        creator: any
+        fail: 1
+        resume: 1
+        wakeup: 1
+        history: 1
+        techlog: 1
+        attribute: 1
+        context: 1
+
+    System:
+        creator: any
