@@ -1,0 +1,27 @@
+OUTPUT_DIR: ca
+default:
+  C: DE
+  O: White Rabbity Security GmbH
+  OU: PKI
+  PUBKEY_SIZE: 3072
+  VALIDITY_DAYS: 365
+  PASSPHRASE: root
+  EE_CERT_PROFILE: endentity
+root:
+  copy:
+    crt: root.crt
+  PUBKEY_SIZE: 4096
+  CN: OpenXPKI Demo Root CA 1
+  VALIDITY_DAYS: 1825
+  realm_names: democa
+  realms:
+    democa:
+      issuing:
+        VALIDITY_DAYS: 1460
+        sign: vault
+        CN: OpenXPKI Demo Issuing CA 1
+        vault:
+          CN: DataVault
+          copy:
+            crt: vault-1.crt
+            key: vault-1.pem
