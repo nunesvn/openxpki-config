@@ -42,8 +42,9 @@ main:
       - key:   workflow!index!wf_type!set_motd
         label: I18N_OPENXPKI_UI_MENU_SET_MOTD
       - key:   workflow!index!wf_type!release_transaction_lock
-        label: I18N_OPENXPKI_UI_WORKFLOW_TYPE_RELEASE_LOCK_LABEL        
-
+        label: I18N_OPENXPKI_UI_WORKFLOW_TYPE_RELEASE_LOCK_LABEL
+      - key:   workflow!index!wf_type!generate_scep_token        
+        label: I18N_OPENXPKI_UI_WORKFLOW_TYPE_SCEP_TOKEN_LABEL
 
   - key:   info
     label: I18N_OPENXPKI_UI_MENU_INFORMATION

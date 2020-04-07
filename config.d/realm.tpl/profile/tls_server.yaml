@@ -68,6 +68,15 @@ style:
             server_id: "[% data.server_id %]"
             entity: "[% CN.0 FILTER lower %]"
 
+    # used by the internal generate SCEP token workflow
+    scep_internal:
+        subject:
+            dn: CN=SCEP RA,DC=Test Deployment,DC=OpenXPKI,DC=org
+            #san:
+              # you might add the DNS names used for SCEP here
+              # DNS: scep.example.comm
+
+
 # Profile extensions - set 0/1 as needed
 # Also see sections defined in default.yaml
 extensions:

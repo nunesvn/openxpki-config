@@ -1,0 +1,129 @@
+head:
+    prefix: sceptoken
+    label: I18N_OPENXPKI_UI_WORKFLOW_TYPE_SCEP_TOKEN_LABEL
+    description: I18N_OPENXPKI_UI_WORKFLOW_TYPE_SCEP_TOKEN_DESC
+
+
+state:
+    INITIAL:
+        action: initialize global_render_subject check_cert_exists > CHECK_CERT_EXISTS
+
+    CHECK_CERT_EXISTS:
+        autorun: 1
+        action:
+          - global_noop > PREPARE ? !has_subject_duplicate
+          - global_noop2 > CERT_EXISTS ? has_subject_duplicate !global_is_system_role
+          - global_set_error_not_in_renewal_window > CANCELED ? has_subject_duplicate global_is_system_role
+
+    CERT_EXISTS:
+        label: I18N_OPENXPKI_UI_WORKFLOW_STATE_SCEP_TOKEN_CERT_EXISTS_LABEL
+        description: I18N_OPENXPKI_UI_WORKFLOW_STATE_SCEP_TOKEN_CERT_EXISTS_DESC
+        action:
+          - global_cancel > CANCELED
+          - global_noop > PREPARE
+        output:
+          - check_policy_subject_duplicate
+        button:
+          global_cancel:
+            format: failure
+          global_noop:
+            label: I18N_OPENXPKI_UI_WORKFLOW_SUBMIT_BUTTON
+            format: alternative
+
+    PREPARE:
+        autorun: 1
+        action:
+          - get_password_from_config generate_key generate_pkcs10 persist_key global_persist_csr > PENDING
+
+    PENDING:
+        autorun: 1
+        action:
+          - global_nice_issue_certificate register_alias > SUCCESS
+
+    CANCELED:
+        output:
+          - check_policy_subject_duplicate
+
+    SUCCESS:
+        output:
+          - cert_identifier
+          - alias
+
+action:
+    initialize:
+        class: OpenXPKI::Server::Workflow::Activity::Tools::SetContext
+        param:
+            cert_profile: tls_server
+            cert_subject_style: scep_internal
+            cert_subject_parts:
+                hostname: SCEP RA
+
+    check_cert_exists:
+        class: OpenXPKI::Server::Workflow::Activity::CSR::CheckPolicySubjectDuplicate
+        param:
+           allow_renewal_period: "+000060"
+
+    generate_key:
+        class: OpenXPKI::Server::Workflow::Activity::NICE::GenerateKey
+        param:
+            enc_alg: aes256
+            key_alg: rsa
+            key_gen_params:
+              KEY_LENGTH: 3072
+            _map_password: $_password
+            target_key: _private_key
+
+    get_password_from_config:
+        class: OpenXPKI::Server::Workflow::Activity::Tools::Connector::GetValue
+        param:
+            config_path: crypto.secret.default.value
+            target_key: _password
+
+    generate_pkcs10:
+        class: OpenXPKI::Server::Workflow::Activity::CSR::GeneratePKCS10
+        param:
+            _map_private_key: $_private_key.pkey
+
+    register_alias:
+        class: OpenXPKI::Server::Workflow::Activity::Internal::RegisterAlias
+        param:
+            group: scep
+            target_key: alias
+
+    persist_key:
+        class: OpenXPKI::Server::Workflow::Activity::Internal::RegisterKey
+        param:
+            _map_key_id: $_private_key.key_id
+            _map_private_key: $_private_key.pkey
+
+condition:
+    has_subject_duplicate:
+        class: Workflow::Condition::Evaluate
+        param:
+            test: $context->{check_policy_subject_duplicate}
+
+field:
+    alias:
+        name: alias
+        label: I18N_OPENXPKI_UI_TOKEN_ALIAS
+
+acl:
+    System:
+        creator: any
+        context: 1
+        fail: 1
+        resume: 1
+        wakeup: 1
+
+
+    RA Operator:
+        creator: any
+        fail: 1
+        resume: 1
+        wakeup: 1
+        history: 1
+        techlog: 1
+        attribute: 1
+        context: 1
+
+

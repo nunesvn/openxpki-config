@@ -43,6 +43,8 @@ token:
   scep:
     inherit: default
     backend: OpenXPKI::Crypto::Tool::LibSCEP
+    key_store: DATAPOOL
+    key: "[% KEY_IDENTIFIER %]"
 
   # A different scep token for another scep server, served from datapool
   #scep-altra:
