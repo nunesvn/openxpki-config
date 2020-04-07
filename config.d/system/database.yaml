@@ -4,8 +4,8 @@ main:
     name: openxpki
     host: localhost
     port: 3306
-    user: openxpki
-    passwd: openxpki
+    user@: system.credentials.db.username
+    passwd@: system.credentials.db.password
 
     # extra options passed to the driver as parameter
     #driver:
