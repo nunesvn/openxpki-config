@@ -11,7 +11,6 @@ socket_file:  /var/openxpki/openxpki.socket
 pid_file:     /var/run/openxpkid.pid
 stderr:       /var/log/openxpki/stderr.log
 tmpdir:       /var/tmp
-socket_owner: apache
 
 # This is experimental!
 #type: PreFork
