@@ -6,6 +6,12 @@
 # Generic Vars
 ############################################################
 
+# Use bash to support sourcing the local conf file
+SHELL = /bin/bash
+
+# This is a local 'shell source' file that may contain local overrides like PKGNAME
+LOCAL_CONF_FILE := .customerinfo
+
 # These are the directories and files that will get installed into %{buildroot}/etc/openxpki/
 ETC_OXI_SUBDIRS := ca certep config.d contrib est log.conf notification rpc scep soap webui
 
@@ -27,11 +33,23 @@ endif
 
 export RELEASE
 
+# Set the PKGNAME and PKGDESC from the local override file, if it exists
+# and they are set. Otherwise, default to 'openxpki-config' and
+# "OpenXPKI Configuration"
+PKGNAME = $(shell test -f $(LOCAL_CONF_FILE) && source $(LOCAL_CONF_FILE); echo $$PKGNAME)
+ifeq "$(PKGNAME)" ""
+	PKGNAME := openxpki-config
+endif
+PKGDESC = $(shell test -f $(LOCAL_CONF_FILE) && source $(LOCAL_CONF_FILE); echo $$PKGDESC)
+ifeq "$(PKGDESC)" ""
+	PKGDESC := OpenXPKI configuration
+endif
+
 ############################################################
 # Debian Variables
 ############################################################
 
-PKG_NAME = openxpki-config
+PKG_NAME = $(PKGNAME)
 DEB_PKG			= $(PKG_NAME)_$(VERSION)-$(RELEASE)_amd64.deb
 DEB_TARBALL  = $(PKG_NAME)_$(VERSION).orig.tar.gz
 DEB_SRCDIR	= $(PKG_NAME)-$(VERSION)
@@ -41,7 +59,6 @@ DEB_SRCDIR	= $(PKG_NAME)-$(VERSION)
 GIT_BRANCH = $(shell (git symbolic-ref HEAD 2>/dev/null||echo '(unnamed branch)') \
 	|perl -pe 's{refs/heads/}{}xms')
 
-PKGNAME := openxpki-config
 
 .PHONY: all install version
 
@@ -126,6 +143,9 @@ install:
 pkgname:
 	@echo "$(PKGNAME)"
 
+pkgdesc:
+	@echo "$(PKGDESC)"
+
 version: VERSION
 	@echo "$(VERSION)"
 
@@ -160,6 +180,7 @@ dist: $(PKGNAME)-$(VERSION).tar.gz
 package/suse/$(PKGNAME).spec: package/suse/system-config.spec.template check assert-specific-target
 	tpage $(TT_VERSION_SYMBOLS) \
 		--define PKGNAME="$(PKGNAME)" \
+		--define PKGDESC="$(PKGDESC)" \
 		--define version="$(VERSION)" \
 		--define GIT_COMMIT_HASH="$(GIT_COMMIT_HASH)" \
 		--define GIT_TAGS="$(GIT_TAGS)" \

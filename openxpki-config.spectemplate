@@ -1,7 +1,7 @@
 ## Written 2014 by Scott Hardin for the OpenXPKI project
 ## Copyright (C) 2005-2014 by The OpenXPKI Project
 
-%define pkgname openxpki-config
+%define pkgname @PKGNAME@
 %define filelist %{name}-%{version}-filelist
 %define NVR %{name}-%{version}-%{release}
 %define maketest 0
@@ -23,7 +23,7 @@ AutoReqProv: no
 BuildArch: noarch
 
 %description
-OpenXPKI Configuration
+@PKGDESC@
 
 Packaging information:
 Git commit hash:       @GIT_COMMIT_HASH@

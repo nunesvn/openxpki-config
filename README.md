@@ -28,3 +28,15 @@ and put the name of the realm in the file system/realms.yaml.
 A demo realm named "democa" is part of the repository. It is recommended to 
 not use this for a production system.
 
+# Packaging and Customization
+
+Note: This feature is implemented in the TeamCity build.
+
+By default, the package name for RPMS is 'openxpki-config'. This can be customized via the
+file .customerinfo. The format is NAME=VALUE:
+
+    PKGNAME=openxpki-config-acme
+    PKGDESC="OpenXPKI configuration for Acme Corporation"
+
+
+
