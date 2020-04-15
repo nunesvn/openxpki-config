@@ -49,10 +49,9 @@ endif
 # Debian Variables
 ############################################################
 
-PKG_NAME = $(PKGNAME)
-DEB_PKG			= $(PKG_NAME)_$(VERSION)-$(RELEASE)_amd64.deb
-DEB_TARBALL  = $(PKG_NAME)_$(VERSION).orig.tar.gz
-DEB_SRCDIR	= $(PKG_NAME)-$(VERSION)
+DEB_PKG			= $(PKGNAME)_$(VERSION)-$(RELEASE)_amd64.deb
+DEB_TARBALL  = $(PKGNAME)_$(VERSION).orig.tar.gz
+DEB_SRCDIR	= $(PKGNAME)-$(VERSION)
 
 
 # currently checked-out branch
@@ -134,7 +133,7 @@ assert-branch:
 install: 
 	@echo "DEBUG - running target $@"
 	mkdir -p $(DESTDIR)/etc/openxpki
-	tar cf - $(EXCL_ARGS) $(ETC_OXI_SUBDIRS) | tar xf - -C $(DESTDIR)/etc/openxpki
+	tar cf - --exclude debian --exclude package $(ETC_OXI_SUBDIRS) | tar xf - -C $(DESTDIR)/etc/openxpki
 
 ############################################################
 # RULES - Package Build Targets
@@ -169,6 +168,7 @@ $(PKGNAME)-$(VERSION).tar.gz:
 	echo ".gitattributes export-ignore" > .gitattributes
 	echo ".gitignore export-ignore" >> .gitattributes
 	echo "package export-ignore" >> .gitattributes
+	echo "debian export-ignore" >> .gitattributes
 	echo "*.spec export-ignore" >> .gitattributes
 	git archive \
 		--prefix=$(PKGNAME)-$(VERSION)/ \
@@ -232,44 +232,63 @@ help:
 #
 ############################################################
 
-#.PHONY: debian debian-clean debian-install debian-test
-#
-#debian-old: $(DEB_PKG)
-#
-#debian: $(DEB_PKG)
-#
-## This is "Step 1" in the debian packaging intro
-#$(DEB_TARBALL): $(shell find opt -type f) Makefile VERSION
-#	rm -rf $(DEB_SRCDIR)
-#	mkdir $(DEB_SRCDIR)
-#	cp -a Makefile VERSION opt $(DEB_SRCDIR)/
-#	tar czf $@ $(PKG_NAME)-$(VERSION)
-#
-#$(DEB_PKG): $(DEB_TARBALL) $(shell find debian -type f) $(shell find opt -type f)
-#	@echo "INFO: begin make rule '$@'"
-#	# delete previous build, if exists
-#	rm -rf $(DEB_SRCDIR)
-#	# unpack Perl tarball ("Step 2" of the debian packaging intro)
-#	tar xzf $(DEB_TARBALL)
-#	# BEGIN "Step 3" of the debian packaging intro...
-#	tar cf -  debian | tar xf - -C $(DEB_SRCDIR)
-#	# update changelog
-#	cd $(DEB_SRCDIR) && debchange --create --package $(PKG_NAME) --newversion $(VERSION)-$(RELEASE) autobuild
-#	# END "Step 3"
-#	# build the package
-#	cd $(DEB_SRCDIR) && DEB_BUILD_OPTIONS=nocheck dpkg-buildpackage --build=binary -us -uc
-#
-#debian-clean: clean
-#	rm -rf $(DEB_PKG) \
+.PHONY: debian debian-clean debian-install debian-test
+
+debian: $(DEB_PKG)
+
+# This is "Step 1" in the debian packaging intro
+$(DEB_TARBALL): $(PKGNAME)-$(VERSION).tar.gz
+	cp -a $< $@
+
+$(DEB_PKG): $(DEB_TARBALL) $(shell find debian -type f)
+	@echo "INFO: begin make rule '$@'"
+	# delete previous build, if exists
+	rm -rf $(DEB_SRCDIR)
+	# unpack Perl tarball ("Step 2" of the debian packaging intro)
+	tar xzf $(DEB_TARBALL)
+	# BEGIN "Step 3" of the debian packaging intro...
+	#tar cf -  debian | tar xf - -C $(DEB_SRCDIR)
+	$(MAKE) $(PKGNAME)-$(VERSION)/debian/control
+	$(MAKE) $(PKGNAME)-$(VERSION)/debian/rules
+	# update changelog
+	cd $(DEB_SRCDIR) && debchange --create --package $(PKGNAME) --newversion $(VERSION)-$(RELEASE) autobuild
+	# END "Step 3"
+	# build the package
+	cd $(DEB_SRCDIR) && DEB_BUILD_OPTIONS=nocheck dpkg-buildpackage --build=binary -us -uc
+
+debian-clean: clean
+	rm -rf $(DEB_PKG) #\
 #		debian/changelog 
-##		$(DEB_TARBALL) \
-##		$(PKG_NAME)_$(VERSION)-$(RELEASE).debian.tar.gz \
-##	    $(PKG_NAME)_$(VERSION)-$(RELEASE).dsc \
-##		perl-$(VERSION)
-#
-#debian-install: #$(DEB_PKG)
-#	$(SUDO) dpkg -i $(DEB_PKG)
-#
-#debian-test:
-#	$(MYPROVE)
-#
+#		$(DEB_TARBALL) \
+#		$(PKGNAME)_$(VERSION)-$(RELEASE).debian.tar.gz \
+#	    $(PKGNAME)_$(VERSION)-$(RELEASE).dsc \
+#		perl-$(VERSION)
+
+debian-install: #$(DEB_PKG)
+	$(SUDO) dpkg -i $(DEB_PKG)
+
+debian-test:
+	$(MYPROVE)
+
+# The following targets are used for local customization
+$(PKGNAME)-$(VERSION)/debian/control: debian/control.template
+	tpage $(TT_VERSION_SYMBOLS) \
+		--define PKGNAME="$(PKGNAME)" \
+		--define PKGDESC="$(PKGDESC)" \
+		--define version="$(VERSION)" \
+		--define GIT_COMMIT_HASH="$(GIT_COMMIT_HASH)" \
+		--define GIT_TAGS="$(GIT_TAGS)" \
+		$< > $@.new
+	mv $@.new $@
+
+$(PKGNAME)-$(VERSION)/debian/rules: debian/rules.template
+	tpage $(TT_VERSION_SYMBOLS) \
+		--define PKGNAME="$(PKGNAME)" \
+		--define PKGDESC="$(PKGDESC)" \
+		--define version="$(VERSION)" \
+		--define GIT_COMMIT_HASH="$(GIT_COMMIT_HASH)" \
+		--define GIT_TAGS="$(GIT_TAGS)" \
+		$< > $@.new
+	mv $@.new $@
+
+		

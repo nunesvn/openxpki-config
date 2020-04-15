@@ -1,0 +1,13 @@
+Source: [% PKGNAME %]
+Maintainer: White Rabbit Security GmbH <support@whiterabbitsecurity.com>
+Priority: optional
+
+Package: [% PKGNAME %]
+Section: perl
+Architecture: any
+Recommends:
+Priority: optional
+Description: [% PKGDESC %]
+ Packaging information:
+ Git commit hash: [% GIT_COMMIT_HASH %]
+ Git tags: [% GIT_TAGS %]
