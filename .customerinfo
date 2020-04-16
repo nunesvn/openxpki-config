@@ -1,0 +1,6 @@
+# .customerinfo
+
+PKGNAME=pki-config-acme
+PKGDESC="OpenXPKI configuration for Acme Corporation"
+
+
