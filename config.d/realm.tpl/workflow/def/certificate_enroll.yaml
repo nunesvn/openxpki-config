@@ -7,7 +7,13 @@ state:
     # Extract information from CSR, set profile and render subject
     # All information required for the certificate are in place
     INITIAL:
-        action: initialize global_map_url_params set_transaction_id global_create_lock set_workflow_attributes global_load_policy global_set_profile parse_pkcs10 > PARSED
+        action: initialize global_map_url_params global_load_policy global_set_profile > CHECK_FOR_PKCS10
+
+    CHECK_FOR_PKCS10:
+        autorun: 1
+        action:
+          - set_transaction_id global_create_lock set_workflow_attributes parse_pkcs10 > PARSED ? has_pkcs10_set
+          - parse_pkcs7 set_pkcs10_from_payload set_transaction_id global_create_lock set_workflow_attributes parse_pkcs10 > PARSED ? !has_pkcs10_set
 
     # check for certificateTemplate or url param to override profile
     PARSED:
@@ -30,9 +36,16 @@ state:
     READY_TO_PROCESS:
         autorun: 1
         action:
-          - set_mode_initial > START_INITIAL ? !global_is_signed_request global_is_subject_valid
+          - set_mode_initial > START_INITIAL ? !global_is_signed_request global_is_subject_valid !has_pkcs7_set
+          - pkcs7_get_signer_cert > HAS_VALID_PKCS7_SIGNATURE ? !global_is_signed_request global_is_subject_valid has_pkcs7_set
           - global_check_authorized_signer > SIGNED_REQUEST ? global_is_signed_request global_is_subject_valid
           - global_set_error_invalid_subject > FAILURE ? !global_is_subject_valid
+
+    HAS_VALID_PKCS7_SIGNATURE:
+        autorun: 1
+        action:
+          - global_check_authorized_signer > SIGNED_REQUEST ? global_is_signed_request
+          - global_set_error_invalid_signature > FAILURE ? !global_is_signed_request
 
     # Determine the type of request
     # inital anonymous = self signed (key and subject)
@@ -64,14 +77,14 @@ state:
         action:
           - global_validate_challenge_password > VALIDATE_CHALLENGE_PASSWORD ? need_challenge_password
           - global_noop > MANUAL_AUTHORIZATION ? !need_challenge_password is_manual_authentication_allowed
-          - global_set_error_signer_not_authorized > FAILURE ? !need_challenge_password !is_manual_authentication_allowed
+          - global_set_error_not_authenticated > FAILURE ? !need_challenge_password !is_manual_authentication_allowed
 
     VALIDATE_CHALLENGE_PASSWORD:
         autorun: 1
         action:
           - global_noop > AUTHORIZED ? is_valid_challenge_password
           - global_noop2 > MANUAL_AUTHORIZATION ? !is_valid_challenge_password is_manual_authentication_allowed
-          - global_set_error_signer_not_authorized > FAILURE ? !is_valid_challenge_password !is_manual_authentication_allowed
+          - global_set_error_not_authenticated > FAILURE ? !is_valid_challenge_password !is_manual_authentication_allowed
 
     MANUAL_AUTHORIZATION:
         label: I18N_OPENXPKI_UI_WORKFLOW_STATE_ENROLL_MANUAL_AUTHORIZATION_LABEL
@@ -316,6 +329,7 @@ action:
             source: api
         input:
             - pkcs10
+            - pkcs7
             - server
             - interface
             - signer_cert
@@ -325,7 +339,8 @@ action:
             - transaction_id
             - profile
         validator:
-          - global_pkcs10_valid
+            - global_pkcs10_valid
+            - need_pkcs7_or_pkcs10
 
     accept_request:
         class: OpenXPKI::Server::Workflow::Activity::Noop
@@ -584,6 +599,23 @@ action:
             target_key: chain
             template: '[% chain.join("\n"); "\n"; ca %]'
 
+    parse_pkcs7:
+        class: OpenXPKI::Server::Workflow::Activity::Tools::ParsePKCS7
+        param:
+            _map_pkcs7: $pkcs7
+            target_key: _pkcs10
+
+    set_pkcs10_from_payload:
+        class: OpenXPKI::Server::Workflow::Activity::Tools::SetContext
+        param:
+            _map_pkcs10: "[% USE PKCS10; PKCS10.pem(context._pkcs10) %]"
+
+    pkcs7_get_signer_cert:
+        class: OpenXPKI::Server::Workflow::Activity::Tools::VerifySignature
+        param:
+            _map_pkcs7: $pkcs7
+            signer_cert_key: signer_cert
+            _map_content: "[% IF !context._pkcs10; USE PKCS10; PKCS10.binary(context.pkcs10); END %]"
 
 condition:
     is_anonymous_enrollment_allowed:
@@ -740,11 +772,41 @@ condition:
         param:
             test: ($context->{p_export_certificate} && $context->{p_export_certificate} eq "fullchain")
 
+    has_pkcs7_set:
+        class: Workflow::Condition::Evaluate
+        param:
+            test: ($context->{pkcs7})
+
+    has_pkcs10_set:
+        class: Workflow::Condition::Evaluate
+        param:
+            test: ($context->{pkcs10})
+
+validator:
+    need_pkcs7_or_pkcs10:
+        class: OpenXPKI::Server::Workflow::Validator::BooleanHasFields
+        param:
+            operator: or
+            error: Please provide either PKCS7 or PKCS10
+        arg:
+          - $pkcs10
+          - $pkcs7
+
 
 field:
     _pkcs7:
         name: _pkcs7
         required: 1
+        type: text
+
+    pkcs7:
+        name: pkcs7
+        required: 0
+        type: text
+
+    pkcs10:
+        name: pkcs10
+        required: 0
         type: text
 
     _url_params:
