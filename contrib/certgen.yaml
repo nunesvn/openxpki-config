@@ -7,6 +7,9 @@ default:
   VALIDITY_DAYS: 365
   PASSPHRASE: root
   EE_CERT_PROFILE: endentity
+  DIGEST: sha384
+  ALGORITHM: ec:secp384r1
+
 root:
   copy:
     crt: root.crt
@@ -21,6 +24,7 @@ root:
         sign: vault
         CN: OpenXPKI Demo Issuing CA 1
         vault:
+          ALGORITHM: rsa:2048
           CN: DataVault
           copy:
             crt: vault-1.crt
