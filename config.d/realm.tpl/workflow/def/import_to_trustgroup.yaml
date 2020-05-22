@@ -1,0 +1,153 @@
+head:
+    prefix: tgimport
+    label: I18N_OPENXPKI_UI_WORKFLOW_TYPE_TRUSTGROUP_IMPORT_LABEL
+    description: I18N_OPENXPKI_UI_WORKFLOW_TYPE_TRUSTGROUP_IMPORT_DESC
+
+state:
+    INITIAL:
+        action:
+          - initialize > BACKGROUNDING
+
+    BACKGROUNDING:
+        autorun: 1
+        action:
+          - global_run_in_background > CHECK_STATUS ? global_run_in_background !is_certificate_already_registered
+          - global_noop > CHECK_STATUS ? !global_run_in_background !is_certificate_already_registered
+          - global_noop2 > SUCCESS ? is_certificate_already_registered
+
+    CHECK_STATUS:
+        autorun: 1
+        action:
+            - register_alias > SUCCESS ? is_certificate_known
+            - import_certificate register_alias > SUCCESS ? !is_certificate_known is_issuer_known
+            - global_noop > NEED_ISSUER ? !is_certificate_known !is_issuer_known
+
+    NEED_ISSUER:
+        label: I18N_OPENXPKI_UI_WORKFLOW_STATE_TRUSTGROUP_NEED_ISSUER_LABEL
+        description: I18N_OPENXPKI_UI_WORKFLOW_STATE_TRUSTGROUP_NEED_ISSUER_DESC
+        action:
+            - global_cancel > CANCELED
+            - import_root > IMPORT
+
+    IMPORT:
+        action:
+           - import_certificate register_alias > SUCCESS
+           - global_noop > NEED_ISSUER
+
+    FAILURE:
+        label: I18N_OPENXPKI_UI_WORKFLOW_STATE_FAILURE_LABEL
+        description: I18N_OPENXPKI_UI_WORKFLOW_STATE_FAILURE_DESC
+        output:
+         - certificate
+         - trustgroup
+
+    CANCELED:
+        label: I18N_OPENXPKI_UI_WORKFLOW_STATE_CANCELED_LABEL
+        description: I18N_OPENXPKI_UI_WORKFLOW_STATE_CANCELED_DESC
+        output:
+         - certificate
+         - trustgroup
+
+    SUCCESS:
+        label: I18N_OPENXPKI_UI_WORKFLOW_STATE_SUCCESS_LABEL
+        description: I18N_OPENXPKI_UI_WORKFLOW_STATE_SUCCESS_DESC
+        output:
+         - cert_identifier
+         - trustgroup
+         - alias
+
+action:
+    initialize:
+        class: OpenXPKI::Server::Workflow::Activity::Tools::GetCertificateIdentifier
+        label: I18N_OPENXPKI_UI_WORKFLOW_ACTION_INIT_TRUSTGROUP_IMPORT_LABEL
+        description: I18N_OPENXPKI_UI_WORKFLOW_ACTION_INIT_TRUSTGROUP_IMPORT_DESC
+        input:
+          - certificate
+          - trustgroup
+          - run_in_background
+        validator:
+          - is_valid_certificate
+
+    register_alias:
+        class: OpenXPKI::Server::Workflow::Activity::Internal::RegisterAlias
+        param:
+            _map_group: $trustgroup
+            pki_realm: _global
+            target_key: alias
+
+    import_root:
+        class: OpenXPKI::Server::Workflow::Activity::Noop
+        input:
+         - chain
+        validator:
+         - is_matching_root
+
+    import_certificate:
+        class: OpenXPKI::Server::Workflow::Activity::Tools::ImportCertificate
+        param:
+           _map_certificate: $certificate
+           _map_chain: $chain
+           import_root: 1
+
+
+condition:
+    is_issuer_known:
+        class: OpenXPKI::Server::Workflow::Condition::CertificateIssuerKnown
+        param:
+            _map_certificate: $certificate
+
+    is_certificate_already_registered:
+        class: OpenXPKI::Server::Workflow::Condition::CertIdentifierExists
+        param:
+            _map_in_alias_group: $trustgroup
+
+    is_certificate_known:
+        class: OpenXPKI::Server::Workflow::Condition::CertIdentifierExists
+        param:
+            pki_realm: _any
+
+    has_ca_alias_set:
+        class: Workflow::Condition::Evaluate
+        param:
+          test: $context->{ca_alias}
+
+
+validator:
+    is_valid_certificate:
+        class: OpenXPKI::Server::Workflow::Validator::ValidCertificate
+        arg:
+         - $certificate
+
+    is_matching_root:
+        class: OpenXPKI::Server::Workflow::Validator::ValidCertificate
+        param:
+            validate_chain: 1
+            external_root: 1
+        arg:
+         - "[% context.certificate %]\n[% context.chain %]"
+
+field:
+    trustgroup:
+        name: trustgroup
+        type: text
+
+acl:
+    Anonymous:
+        creator: self
+
+    RA Operator:
+        creator: any
+        fail: 1
+        resume: 1
+        wakeup: 1
+        history: 1
+        techlog: 1
+        attribute: 1
+        context: 1
+
+    System:
+        creator: any
+        fail: 1
+        resume: 1
+        wakeup: 1
+
