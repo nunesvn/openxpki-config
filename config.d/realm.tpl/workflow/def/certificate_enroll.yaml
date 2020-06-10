@@ -12,8 +12,8 @@ state:
     CHECK_FOR_PKCS10:
         autorun: 1
         action:
-          - set_transaction_id global_create_lock set_workflow_attributes parse_pkcs10 > PARSED ? has_pkcs10_set
-          - parse_pkcs7 set_pkcs10_from_payload set_transaction_id global_create_lock set_workflow_attributes parse_pkcs10 > PARSED ? !has_pkcs10_set
+          - set_transaction_id global_create_lock set_workflow_attributes parse_pkcs10 search_key_duplicate_certificate > PARSED ? has_pkcs10_set
+          - parse_pkcs7 set_pkcs10_from_payload set_transaction_id global_create_lock set_workflow_attributes parse_pkcs10 search_key_duplicate_certificate > PARSED ? !has_pkcs10_set
 
     # check for certificateTemplate or url param to override profile
     PARSED:
@@ -28,9 +28,10 @@ state:
     PROFILE_SET:
         autorun: 1
         action:
-          - render_subject set_workflow_attributes > READY_TO_PROCESS ? global_is_valid_key has_profile_set
-          - global_set_error_policy_invalid_key_param > FAILURE ? !global_is_valid_key has_profile_set
-          - global_set_error_invalid_profile > FAILURE ? !has_profile_set
+          - global_set_error_policy_key_duplicate > FAILURE ? global_has_duplicate_key_certificate
+          - render_subject set_workflow_attributes > READY_TO_PROCESS ? global_is_valid_key has_profile_set !global_has_duplicate_key_certificate
+          - global_set_error_policy_invalid_key_param > FAILURE ? !global_is_valid_key has_profile_set !global_has_duplicate_key_certificate
+          - global_set_error_invalid_profile > FAILURE ? !has_profile_set !global_has_duplicate_key_certificate
 
     # shortcut to inital if no signer cert is set
     READY_TO_PROCESS:
@@ -424,6 +425,13 @@ action:
         param:
             _map_cert_profile: $cert_profile
             _map_cert_subject_style: "[% IF context.cert_subject_style %][% context.cert_subject_style %][% ELSE %]enroll[% END %]"
+
+    search_key_duplicate_certificate:
+        class: OpenXPKI::Server::Workflow::Activity::Tools::SearchCertificates
+        param:
+            realm: _any
+            _map_subject_key_identifier: $csr_subject_key_identifier
+            target_key: check_policy_key_duplicate_certificate
 
     search_subject_duplicate:
         class: OpenXPKI::Server::Workflow::Activity::Tools::SearchCertificates
