@@ -710,6 +710,7 @@ condition:
         param:
             _map_subject1: $signer_subject
             _map_subject2: $csr_subject
+            cn_only: 1
 
     need_hmac:
         class: OpenXPKI::Server::Workflow::Condition::Connector::Exists
