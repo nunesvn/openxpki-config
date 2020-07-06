@@ -3,7 +3,6 @@ default:
   C: DE
   O: White Rabbity Security GmbH
   OU: PKI
-  PUBKEY_SIZE: 3072
   VALIDITY_DAYS: 365
   PASSPHRASE: root
   EE_CERT_PROFILE: endentity
