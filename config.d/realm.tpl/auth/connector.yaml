@@ -15,9 +15,10 @@ user-ad:
 raop-ad:
     class: Connector::Builtin::Authentication::LDAP
     LOCATION: ldap://ldap
-    binddn:  cn=admin,dc=openxpki,dc=org
+    base:  dc=openxpki,dc=org
     binddn@: credentials.ad.binddn
     password@: credentials.ad.password
-    groupdn: "cn=RA Operator,ou=SecurityGroups,dc=openxpki,dc=org"
+    groupdn: "cn=raops,ou=groups,dc=openxpki,dc=org"
+    groupattr: "memberUid"
     filter: "(mail=[% LOGIN %])"
 

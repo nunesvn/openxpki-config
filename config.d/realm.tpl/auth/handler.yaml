@@ -11,6 +11,16 @@ Operator Password:
     role: RA Operator
     source@: connector:auth.connector.raop-local
 
+Operator LDAP:
+    type: Connector
+    role: RA Operator
+    source@: connector:auth.connector.raop-ad
+
+User LDAP:
+    type: Connector
+    role: User
+    source@: connector:auth.connector.user-ad
+
 System:
     type: Anonymous
     label: System

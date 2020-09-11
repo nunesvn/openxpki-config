@@ -1,6 +1,12 @@
 Operator:
     handler: Operator Password
 
+Operator LDAP:
+    handler: Operator LDAP
+
+User LDAP:
+    handler: User LDAP
+
 Certificate:
     handler: Certificate
 
