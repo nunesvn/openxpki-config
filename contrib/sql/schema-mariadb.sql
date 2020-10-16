@@ -1,6 +1,17 @@
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET time_zone = "+00:00";
 
+CREATE SEQUENCE IF NOT EXISTS seq_application_log         START WITH 0 INCREMENT BY 1 MINVALUE 0 NO MAXVALUE CACHE 1;
+CREATE SEQUENCE IF NOT EXISTS seq_audittrail              START WITH 0 INCREMENT BY 1 MINVALUE 0 NO MAXVALUE CACHE 1;
+CREATE SEQUENCE IF NOT EXISTS seq_certificate             START WITH 0 INCREMENT BY 1 MINVALUE 0 NO MAXVALUE CACHE 1;
+CREATE SEQUENCE IF NOT EXISTS seq_certificate_attributes  START WITH 0 INCREMENT BY 1 MINVALUE 0 NO MAXVALUE CACHE 1;
+CREATE SEQUENCE IF NOT EXISTS seq_crl                     START WITH 0 INCREMENT BY 1 MINVALUE 0 NO MAXVALUE CACHE 1;
+CREATE SEQUENCE IF NOT EXISTS seq_csr                     START WITH 0 INCREMENT BY 1 MINVALUE 0 NO MAXVALUE CACHE 1;
+CREATE SEQUENCE IF NOT EXISTS seq_csr_attributes          START WITH 0 INCREMENT BY 1 MINVALUE 0 NO MAXVALUE CACHE 1;
+CREATE SEQUENCE IF NOT EXISTS seq_secret                  START WITH 0 INCREMENT BY 1 MINVALUE 0 NO MAXVALUE CACHE 1;
+CREATE SEQUENCE IF NOT EXISTS seq_workflow                START WITH 0 INCREMENT BY 1 MINVALUE 0 NO MAXVALUE CACHE 1;
+CREATE SEQUENCE IF NOT EXISTS seq_workflow_history        START WITH 0 INCREMENT BY 1 MINVALUE 0 NO MAXVALUE CACHE 1;
+
 CREATE TABLE IF NOT EXISTS `aliases` (
   `identifier` varchar(64) DEFAULT NULL,
   `pki_realm` varchar(255) NOT NULL,
@@ -21,7 +32,7 @@ CREATE TABLE IF NOT EXISTS `application_log` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `audittrail` (
-  `audittrail_key` bigint(20) unsigned NOT NULL,
+  `audittrail_key` bigint(20) unsigned DEFAULT (next value for seq_audittrail),
   `logtimestamp` decimal(20,5) unsigned DEFAULT NULL,
   `category` varchar(255) DEFAULT NULL,
   `loglevel` varchar(255) DEFAULT NULL,
@@ -44,7 +55,7 @@ CREATE TABLE IF NOT EXISTS `certificate` (
   `invalidity_time` int(10) unsigned DEFAULT NULL,
   `reason_code` varchar(50) DEFAULT NULL,
   `hold_instruction_code` varchar(50) DEFAULT NULL,
-  `revocation_id` INT NULL DEFAULT NULL, 
+  `revocation_id` INT NULL DEFAULT NULL,
   `req_key` bigint(20) unsigned DEFAULT NULL,
   `data` longtext
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -63,7 +74,7 @@ CREATE TABLE IF NOT EXISTS `crl` (
   `crl_key` decimal(49,0) NOT NULL,
   `crl_number` decimal(49,0) DEFAULT NULL,
   `items` int(10) DEFAULT 0,
-  `max_revocation_id` INT NULL DEFAULT NULL,   
+  `max_revocation_id` INT NULL DEFAULT NULL,
   `data` longtext,
   `last_update` int(10) unsigned DEFAULT NULL,
   `next_update` int(10) unsigned DEFAULT NULL,
@@ -128,56 +139,6 @@ CREATE TABLE IF NOT EXISTS `frontend_session` (
   `created` int(10) unsigned NOT NULL,
   `modified` int(10) unsigned NOT NULL,
   `ip_address` varchar(45) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-CREATE TABLE IF NOT EXISTS `seq_application_log` (
-  `seq_number` bigint(20) unsigned NOT NULL,
-  `dummy` int(11) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-CREATE TABLE IF NOT EXISTS `seq_audittrail` (
-  `seq_number` bigint(20) NOT NULL,
-  `dummy` int(11) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-CREATE TABLE IF NOT EXISTS `seq_certificate` (
-  `seq_number` bigint(20) NOT NULL,
-  `dummy` int(11) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-CREATE TABLE IF NOT EXISTS `seq_certificate_attributes` (
-  `seq_number` bigint(20) NOT NULL,
-  `dummy` int(11) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-CREATE TABLE IF NOT EXISTS `seq_crl` (
-  `seq_number` bigint(20) NOT NULL,
-  `dummy` int(11) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-CREATE TABLE IF NOT EXISTS `seq_csr` (
-  `seq_number` bigint(20) NOT NULL,
-  `dummy` int(11) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-CREATE TABLE IF NOT EXISTS `seq_csr_attributes` (
-  `seq_number` bigint(20) NOT NULL,
-  `dummy` int(11) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-CREATE TABLE IF NOT EXISTS `seq_secret` (
-  `seq_number` bigint(20) NOT NULL,
-  `dummy` int(11) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-CREATE TABLE IF NOT EXISTS `seq_workflow` (
-  `seq_number` bigint(20) NOT NULL,
-  `dummy` int(11) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-CREATE TABLE IF NOT EXISTS `seq_workflow_history` (
-  `seq_number` bigint(20) NOT NULL,
-  `dummy` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `workflow` (
@@ -309,36 +270,6 @@ ALTER TABLE `frontend_session`
  ADD PRIMARY KEY (`session_id`),
  ADD INDEX(`modified`);
 
-ALTER TABLE `seq_application_log`
- ADD PRIMARY KEY (`seq_number`);
-
-ALTER TABLE `seq_audittrail`
- ADD PRIMARY KEY (`seq_number`);
-
-ALTER TABLE `seq_certificate`
- ADD PRIMARY KEY (`seq_number`);
-
-ALTER TABLE `seq_certificate_attributes`
- ADD PRIMARY KEY (`seq_number`);
-
-ALTER TABLE `seq_crl`
- ADD PRIMARY KEY (`seq_number`);
-
-ALTER TABLE `seq_csr`
- ADD PRIMARY KEY (`seq_number`);
-
-ALTER TABLE `seq_csr_attributes`
- ADD PRIMARY KEY (`seq_number`);
-
-ALTER TABLE `seq_secret`
- ADD PRIMARY KEY (`seq_number`);
-
-ALTER TABLE `seq_workflow`
- ADD PRIMARY KEY (`seq_number`);
-
-ALTER TABLE `seq_workflow_history`
- ADD PRIMARY KEY (`seq_number`);
-
 ALTER TABLE `workflow`
  ADD PRIMARY KEY (`workflow_id`),
  ADD KEY `pki_realm` (`pki_realm`),
@@ -366,30 +297,3 @@ ALTER TABLE `workflow_history`
 ALTER TABLE `ocsp_responses`
  ADD PRIMARY KEY (`serial_number`,`authority_key_identifier`),
  ADD KEY `identifier` (`identifier`);
-
-ALTER TABLE `users`
- ADD PRIMARY KEY (`username`,`pki_realm`),
- ADD UNIQUE `mail` (`mail`,`pki_realm`);
-
-ALTER TABLE `audittrail`
-MODIFY `audittrail_key` bigint(20) unsigned NOT NULL AUTO_INCREMENT;
-ALTER TABLE `seq_application_log`
-MODIFY `seq_number` bigint(20) unsigned NOT NULL AUTO_INCREMENT;
-ALTER TABLE `seq_audittrail`
-MODIFY `seq_number` bigint(20) NOT NULL AUTO_INCREMENT;
-ALTER TABLE `seq_certificate`
-MODIFY `seq_number` bigint(20) NOT NULL AUTO_INCREMENT;
-ALTER TABLE `seq_certificate_attributes`
-MODIFY `seq_number` bigint(20) NOT NULL AUTO_INCREMENT;
-ALTER TABLE `seq_crl`
-MODIFY `seq_number` bigint(20) NOT NULL AUTO_INCREMENT;
-ALTER TABLE `seq_csr`
-MODIFY `seq_number` bigint(20) NOT NULL AUTO_INCREMENT;
-ALTER TABLE `seq_csr_attributes`
-MODIFY `seq_number` bigint(20) NOT NULL AUTO_INCREMENT;
-ALTER TABLE `seq_secret`
-MODIFY `seq_number` bigint(20) NOT NULL AUTO_INCREMENT;
-ALTER TABLE `seq_workflow`
-MODIFY `seq_number` bigint(20) NOT NULL AUTO_INCREMENT;
-ALTER TABLE `seq_workflow_history`
-MODIFY `seq_number` bigint(20) NOT NULL AUTO_INCREMENT;

@@ -1,7 +1,9 @@
 label: I18N_OPENXPKI_UI_WORKFLOW_FIELD_TRANSACTION_ID_LABEL
 name: transaction_id
 description: I18N_OPENXPKI_UI_WORKFLOW_FIELD_TRANSACTION_ID_DESC
+placeholder: d2b5848880cdb8bdac5cfe01adbe50c475fc00e8
 required: 0
 type: text
 api_type: Str
-match: \A[0-9a-z]{40}\z
+# Older SCEP clients still use md5 which is 32 chars and most times uppercase
+match: \A[0-9a-zA-Z]{32,40}\z
