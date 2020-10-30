@@ -9,6 +9,15 @@ default:
   DIGEST: sha384
   ALGORITHM: ec:secp384r1
 
+selfsigned: vault
+vault:
+  ALGORITHM: rsa:2048
+  CN: DataVault
+  protection: none
+  copy:
+    crt: vault-1.crt
+    key: vault-1.pem
+
 root:
   copy:
     crt: root.crt
@@ -22,9 +31,3 @@ root:
         VALIDITY_DAYS: 1460
         sign: vault
         CN: OpenXPKI Demo Issuing CA 1
-        vault:
-          ALGORITHM: rsa:2048
-          CN: DataVault
-          copy:
-            crt: vault-1.crt
-            key: vault-1.pem
