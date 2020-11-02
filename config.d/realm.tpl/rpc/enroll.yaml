@@ -36,12 +36,21 @@ policy:
     # If not autoapproved, allow opeerator to add approval by hand
     allow_man_approv: 1
 
-    # if the eligibiliyt check failed the first time
+    # if the eligibility check failed the first time
     # show a button to run a recheck (Workflow goes to PENDING)
     allow_eligibility_recheck: 0
-
-    # Approval points requirede (eligibity and operator count as one point each)
-    # if you set this to "0", all authenticated requests are auto-approved!
+    
+    # Approval points are used to set a threshold for the system to grant 
+    # approval, and they help measure a request to see whether the 
+    # requirement is fulfilled. If you set this to "0", no points are 
+    # required and all authenticated requests are auto-approved.    
+    # If the eligibilty check returned success and no approval rules are 
+    # defined, you get one point for the passed check. If approval rules 
+    # are given, the eligibility check is a prereq for their evaluation 
+    # and there is NO point for the eligibility check itself! 
+    # If you dont reach the required number of points after this step and 
+    # allow_man_approv is set you can fill up the missing points by a
+    # manual operator approval (one point per operator)
     approval_points: 1
 
     # The number of active certs with the same subject that are allowed
@@ -97,6 +106,14 @@ eligible:
     onbehalf:
        value: 1
 
+
+approval_rules:
+  - name: Approve only if wellformed and lowercase SAN
+    class: Regex    
+    param:
+        san_dns: \A((?!-)[a-zA-Z0-9-]{0,62}[a-zA-Z0-9]\.)+[a-zA-Z]{2,63}\z
+        cn_as_san: 1
+ 
 connector:
     intranet:
         class: OpenXPKI::Connector::Regex

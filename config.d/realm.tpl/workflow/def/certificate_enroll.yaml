@@ -213,9 +213,10 @@ state:
     EVALUATE_AUTOAPPROVAL:
         autorun: 1
         action:
-         - approve_by_eligiblity calculate_approval_points > CHECK_APPROVAL ? is_eligible
+         - approve_by_eligiblity calculate_approval_points > CHECK_APPROVAL ? is_eligible !global_has_approval_rules
+         - global_evaluate_approval_rules > CHECK_APPROVAL ? is_eligible global_has_approval_rules
          - calculate_approval_points > CHECK_APPROVAL ? !is_eligible
-
+         
     CHECK_APPROVAL:
         autorun: 1
         action:
