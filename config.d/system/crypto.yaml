@@ -38,7 +38,7 @@ secret:
         label: Global secret group
         export: 0
         method: literal
-        value: root
+        value@: credentials.token
         # if you want to enter the password after startup via the Webui
         # replace method and value above with this block, kcv is optional
         # but highly recommended as wrong passwords let the engine crash
