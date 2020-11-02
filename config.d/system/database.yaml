@@ -2,10 +2,8 @@ main:
     debug: 0
     type: MariaDB
     name: openxpki
-    host: localhost
-    port: 3306
-    user@: system.credentials.db.username
-    passwd@: system.credentials.db.password
+    user@: credentials.db.username
+    passwd@: credentials.db.password
 
     # extra options passed to the driver as parameter
     #driver:
@@ -15,9 +13,9 @@ main:
     # default is to fail immediately. This is mainly useful if database and
     # OpenXPKI are started by the same init process and the DB might take
     # some time to come up
-    wait_on_init:
-        retry_count: 10
-        retry_interval: 30
+    #wait_on_init:
+    #    retry_count: 10
+    #    retry_interval: 30
 
 # To log to a different database create a section "log" by copying and adjusting
 # the upper block, e.g.:

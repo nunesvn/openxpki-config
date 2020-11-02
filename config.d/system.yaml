@@ -1,5 +1,0 @@
-credentials@: connector:system.credentials-connector
-
-credentials-connector:
-    class: Connector::Proxy::YAML
-    LOCATION: /etc/openxpki/local/credentials.yaml
