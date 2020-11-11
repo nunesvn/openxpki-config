@@ -57,7 +57,8 @@ state:
         action:
           - set_mode_initial > START_INITIAL ? is_self_signed
           - set_mode_onbehalf > START_ONBEHALF ? !signer_key_matches_subject_key !signer_subject_matches_csr_subject
-          - set_mode_renewal > START_RENEWAL ? signer_subject_matches_csr_subject !signer_key_matches_subject_key
+          - set_mode_renewal > START_RENEWAL ? signer_subject_matches_csr_subject !signer_key_matches_subject_key !global_is_surrogate_certificate
+          - global_check_surrogate_signer set_mode_renewal > START_RENEWAL ? signer_subject_matches_csr_subject !signer_key_matches_subject_key global_is_surrogate_certificate
 
     # Authorizations for Inital Enrollment
     START_INITIAL:

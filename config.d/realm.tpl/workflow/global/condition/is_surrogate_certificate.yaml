@@ -1,0 +1,4 @@
+# the evalsignertrust class sets the signer_cert_identifier to an empty value
+class: Workflow::Condition::Evaluate
+param:
+    test: defined $context->{signer_cert_identifier} && not $context->{signer_cert_identifier}
