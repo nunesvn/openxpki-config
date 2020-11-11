@@ -117,10 +117,16 @@ state:
         autorun: 1
         action:
           - global_set_error_signer_revoked > FAILURE ? global_is_signer_revoked is_signer_in_current_realm
-          - global_set_error_signer_expired > FAILURE ? !global_is_signer_revoked !global_is_signer_validity_ok is_signer_in_current_realm
+          - set_renewal_grace_period prepare_renewal load_recent_metadata > CHECK_RENEWAL_GRACE_PERIOD ? !global_is_signer_revoked !global_is_signer_validity_ok is_signer_in_current_realm
           - set_renewal_period prepare_renewal load_recent_metadata > RENEWAL_PREPARED ? !global_is_signer_revoked global_is_signer_validity_ok is_signer_in_current_realm
           - global_set_error_not_in_current_realm > FAILURE ? !is_signer_in_current_realm
 
+    CHECK_RENEWAL_GRACE_PERIOD:
+        autorun: 1
+        action:
+        # is_in_renewal_window is true if signer is within the grace period
+         - global_set_error_signer_expired > FAILURE ? !is_in_renewal_window
+         - global_noop > AUTHORIZED ? is_in_renewal_window
 
     RENEWAL_PREPARED:
         autorun: 1
@@ -360,6 +366,7 @@ action:
         param:
           _map_cert_identifier: $signer_cert_identifier
           _map_renewal_period: $renewal_period
+          _map_renewal_grace_period: $renewal_grace_period
 
     approve_csr:
         class: OpenXPKI::Server::Workflow::Activity::Tools::Approve
@@ -517,6 +524,12 @@ action:
         param:
           _map_config_path: "[% context.interface %].[% context.server %].renewal_period"
           target_key: renewal_period
+
+    set_renewal_grace_period:
+        class: OpenXPKI::Server::Workflow::Activity::Tools::Connector::GetValue
+        param:
+          _map_config_path: "[% context.interface %].[% context.server %].renewal_grace_period"
+          target_key: renewal_grace_period
 
     set_workflow_attributes:
          class: OpenXPKI::Server::Workflow::Activity::Tools::SetAttribute

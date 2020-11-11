@@ -5,6 +5,10 @@ label: Enrollment
 # expire within this period of time.
 renewal_period: 000060
 
+# Allow renewal after the certificate has already expired 
+# within this grace period
+# renewal_grace_period: 000005
+
 # If the request was a replacement, optionally revoke the replaced
 # certificate after a grace period
 revoke_on_replace:
