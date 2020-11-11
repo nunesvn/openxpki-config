@@ -126,7 +126,7 @@ state:
         autorun: 1
         action:
           - global_noop > AUTHORIZED ? is_in_renewal_window
-          - set_mode_renewal set_replace_validity > CHECK_FOR_REVOKE_ON_REPLACE ? !is_in_renewal_window is_replacement_allowed
+          - set_replace_validity > CHECK_FOR_REVOKE_ON_REPLACE ? !is_in_renewal_window is_replacement_allowed
           - global_set_error_not_in_renewal_window > FAILURE ? !is_in_renewal_window !is_replacement_allowed
 
     CHECK_FOR_REVOKE_ON_REPLACE:
@@ -153,18 +153,16 @@ state:
 
     CHECK_FOR_DUPLICATES:
         autorun: 1
-        action:
-          - global_noop > HANDLE_DUPLICATES ? has_subject_duplicate !is_renewal_mode
-          - global_noop2 > START_APPROVAL ? has_subject_duplicate is_renewal_mode is_cert_count_ok_for_renewal
-          - global_set_error_policy_violated > HAS_POLICY_VIOLATION ? has_subject_duplicate is_renewal_mode !is_cert_count_ok_for_renewal
-          - global_noop3 > START_APPROVAL ? !has_subject_duplicate
+        action:          
+          - global_noop > START_APPROVAL ? is_cert_count_ok
+          - global_noop2 > HANDLE_DUPLICATES ? !is_renewal_mode !is_cert_count_ok
+          - global_set_error_policy_violated > HAS_POLICY_VIOLATION ? is_renewal_mode !is_cert_count_ok
 
     HANDLE_DUPLICATES:
         autorun: 1
         action:
-          - queue_duplicates_to_revoke > START_APPROVAL ? need_auto_revoke_existing_certs
-          - global_noop > START_APPROVAL ? !need_auto_revoke_existing_certs is_cert_count_ok_for_initial
-          - global_set_error_policy_violated > HAS_POLICY_VIOLATION ? !need_auto_revoke_existing_certs !is_cert_count_ok_for_initial
+          - queue_duplicates_to_revoke > START_APPROVAL ? need_auto_revoke_existing_certs          
+          - global_set_error_policy_violated > HAS_POLICY_VIOLATION ? !need_auto_revoke_existing_certs
 
     HAS_POLICY_VIOLATION:
         autorun: 1
@@ -438,12 +436,11 @@ action:
             target_key: check_policy_key_duplicate_certificate
 
     search_subject_duplicate:
-        class: OpenXPKI::Server::Workflow::Activity::Tools::SearchCertificates
+        class: OpenXPKI::Server::Workflow::Activity::CSR::CheckPolicySubjectDuplicate
         param:
             _map_profile: $cert_profile
             _map_cert_subject: $cert_subject
-            target_key: check_policy_subject_duplicate
-            entity_only: 1
+            _map_cert_identifier_ignore: "[% IF context.request_mode == 'renewal'; context.signer_cert_identifier; END %]"
 
     queue_duplicates_to_revoke:
         class: OpenXPKI::Server::Workflow::Activity::Tools::SetContext
@@ -756,20 +753,13 @@ condition:
         param:
              test: ($context->{p_max_active_certs})
 
-    is_cert_count_ok_for_initial:
+    is_cert_count_ok:
         class: OpenXPKI::Server::Workflow::Condition::WFArray
         param:
             array_name: check_policy_subject_duplicate
             condition: count_lt
             _map_value: $p_max_active_certs
-
-    is_cert_count_ok_for_renewal:
-        class: OpenXPKI::Server::Workflow::Condition::WFArray
-        param:
-            array_name: check_policy_subject_duplicate
-            condition: count_lte
-            _map_value: $p_max_active_certs
-
+ 
     need_revoke_on_replace:
         class: OpenXPKI::Server::Workflow::Condition::Connector::Exists
         param:
