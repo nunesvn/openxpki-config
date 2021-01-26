@@ -12,8 +12,8 @@ state:
     CHECK_FOR_PKCS10:
         autorun: 1
         action:
-          - set_transaction_id global_create_lock set_workflow_attributes parse_pkcs10 search_key_duplicate_certificate > PARSED ? has_pkcs10_set
-          - parse_pkcs7 set_pkcs10_from_payload set_transaction_id global_create_lock set_workflow_attributes parse_pkcs10 search_key_duplicate_certificate > PARSED ? !has_pkcs10_set
+          - set_transaction_id global_create_lock set_workflow_attributes parse_pkcs10 check_policy_key_duplicate_certificate > PARSED ? has_pkcs10_set
+          - parse_pkcs7 set_pkcs10_from_payload set_transaction_id global_create_lock set_workflow_attributes parse_pkcs10 check_policy_key_duplicate_certificate > PARSED ? !has_pkcs10_set
 
     # check for certificateTemplate or url param to override profile
     PARSED:
@@ -154,7 +154,7 @@ state:
     AUTHORIZED:
         autorun: 1
         action:
-          - search_subject_duplicate > CHECK_FOR_DUPLICATES ? need_subject_duplicate_check
+          - check_policy_subject_duplicate > CHECK_FOR_DUPLICATES ? need_subject_duplicate_check
           - global_noop > START_APPROVAL ? !need_subject_duplicate_check
 
     CHECK_FOR_DUPLICATES:
@@ -435,14 +435,13 @@ action:
             _map_cert_profile: $cert_profile
             _map_cert_subject_style: "[% IF context.cert_subject_style %][% context.cert_subject_style %][% ELSE %]enroll[% END %]"
 
-    search_key_duplicate_certificate:
-        class: OpenXPKI::Server::Workflow::Activity::Tools::SearchCertificates
+    check_policy_key_duplicate_certificate:
+        class: OpenXPKI::Server::Workflow::Activity::CSR::CheckPolicyKeyDuplicate
         param:
-            realm: _any
-            _map_subject_key_identifier: $csr_subject_key_identifier
+            any_realm: 1
             target_key: check_policy_key_duplicate_certificate
-
-    search_subject_duplicate:
+    
+    check_policy_subject_duplicate:
         class: OpenXPKI::Server::Workflow::Activity::CSR::CheckPolicySubjectDuplicate
         param:
             _map_profile: $cert_profile
@@ -755,11 +754,6 @@ condition:
         class: Workflow::Condition::Evaluate
         param:
              test: ($context->{signer_in_current_realm})
-
-    has_subject_duplicate:
-        class: Workflow::Condition::Evaluate
-        param:
-             test: ($context->{check_policy_subject_duplicate})
 
     need_subject_duplicate_check:
         class: Workflow::Condition::Evaluate
