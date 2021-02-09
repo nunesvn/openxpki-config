@@ -208,6 +208,10 @@ clean:
 	rm -rf $(PKGNAME)-$(VERSION).tar.gz $(PKGNAME)-$(VERSION).tar \
 		$(PKGNAME).spec
 
+openxpki-config-ee.i18n: config.d template
+	@grep -rhoEe 'I18N_OPENXPKI_UI_\w+' config.d template | sort | uniq > $@ 
+	test -d ../openxpki/core/i18n/extra && cp $@ ../openxpki/core/i18n/extra
+
 # TODO: clean up this section
 #
 # To also show customer-specific help, add something like the
