@@ -74,10 +74,9 @@ action:
             target_key: _private_key
 
     get_password_from_config:
-        class: OpenXPKI::Server::Workflow::Activity::Tools::Connector::GetValue
+        class: OpenXPKI::Server::Workflow::Activity::Tools::SetContext
         param:
-            config_path: crypto.secret.default.value
-            target_key: _password
+            _map__password@: credentials.token
 
     generate_pkcs10:
         class: OpenXPKI::Server::Workflow::Activity::CSR::GeneratePKCS10
