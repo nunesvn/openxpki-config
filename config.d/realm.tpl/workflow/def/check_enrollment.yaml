@@ -10,8 +10,8 @@ state:
     CHECK_FOR_PKCS10:
         autorun: 1
         action:
-          - parse_pkcs7 set_pkcs10_from_payload calculate_transaction_id check_for_existing_workflow > CHECK_EXISTING_WORKFLOW ? !has_pkcs10
-          - calculate_transaction_id check_for_existing_workflow > CHECK_EXISTING_WORKFLOW ? has_pkcs10
+          - parse_pkcs7 set_pkcs10_from_payload calculate_transaction_id check_for_existing_workflow > CHECK_EXISTING_WORKFLOW ? !global_has_pkcs10
+          - calculate_transaction_id check_for_existing_workflow > CHECK_EXISTING_WORKFLOW ? global_has_pkcs10
 
     CHECK_EXISTING_WORKFLOW:
         autorun: 1

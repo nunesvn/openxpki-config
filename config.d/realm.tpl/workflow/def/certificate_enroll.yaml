@@ -12,8 +12,8 @@ state:
     CHECK_FOR_PKCS10:
         autorun: 1
         action:
-          - set_transaction_id global_create_lock set_workflow_attributes parse_pkcs10 check_policy_key_duplicate_certificate > PARSED ? has_pkcs10
-          - parse_pkcs7 set_pkcs10_from_payload set_transaction_id global_create_lock set_workflow_attributes parse_pkcs10 check_policy_key_duplicate_certificate > PARSED ? !has_pkcs10
+          - set_transaction_id global_create_lock set_workflow_attributes parse_pkcs10 check_policy_key_duplicate_certificate > PARSED ? global_has_pkcs10
+          - parse_pkcs7 set_pkcs10_from_payload set_transaction_id global_create_lock set_workflow_attributes parse_pkcs10 check_policy_key_duplicate_certificate > PARSED ? !global_has_pkcs10
 
     # check for certificateTemplate or url param to override profile
     PARSED:
@@ -37,8 +37,8 @@ state:
     READY_TO_PROCESS:
         autorun: 1
         action:
-          - set_mode_initial > START_INITIAL ? !global_is_signed_request global_is_subject_valid !has_pkcs7
-          - pkcs7_get_signer_cert > HAS_VALID_PKCS7_SIGNATURE ? !global_is_signed_request global_is_subject_valid has_pkcs7
+          - set_mode_initial > START_INITIAL ? !global_is_signed_request global_is_subject_valid !global_has_pkcs7
+          - pkcs7_get_signer_cert > HAS_VALID_PKCS7_SIGNATURE ? !global_is_signed_request global_is_subject_valid global_has_pkcs7
           - global_check_authorized_signer > SIGNED_REQUEST ? global_is_signed_request global_is_subject_valid
           - global_set_error_invalid_subject > FAILURE ? !global_is_subject_valid
 
