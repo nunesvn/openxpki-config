@@ -1,6 +1,9 @@
 Operator:
     handler: Operator Password
 
+User: 
+    handler: Operator As User Password
+
 Operator LDAP:
     handler: Operator LDAP
 

@@ -1,6 +1,6 @@
 # file must hold one user per line, "login: {scheme}digest"
-# digest can be created with "openxpkiadm hashpw"
+# digest can be created with "openxpkiadm hashpw" or with 
+# "openssl passwd -5" (set prepend "{crypt}" to output )
 # this is NOT a yaml file so do NOT use quotes around the hashes
 raop: {ssha}JQ2BAoHQZQgecmNjGF143k4U2st6bE5B
-raop2: {ssha}JQ2BAoHQZQgecmNjGF143k4U2st6bE5B
-
+raop2: {crypt}$5$Urxh/MrSONsya6.m$BWqS2533xvEZuL0kcIIVtpHwU72PdLT5zE3Wd.c3uN7
