@@ -208,6 +208,11 @@ clean:
 	rm -rf $(PKGNAME)-$(VERSION).tar.gz $(PKGNAME)-$(VERSION).tar \
 		$(PKGNAME).spec
 
+version:
+	touch config.d/system/version.yaml
+	sed -r "/^commit:/d" -i config.d/system/version.yaml
+	git log -n 1 --format=format:"commit: \"%h\"%n" HEAD > config.d/system/version.yaml
+
 openxpki-config-ee.i18n: config.d template
 	@grep -rhoEe 'I18N_OPENXPKI_UI_\w+' config.d template | sort | uniq > $@ 
 	test -d ../openxpki/core/i18n/extra && cp $@ ../openxpki/core/i18n/extra
