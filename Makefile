@@ -212,6 +212,13 @@ openxpki-config-ee.i18n: config.d template
 	@grep -rhoEe 'I18N_OPENXPKI_UI_\w+' config.d template | sort | uniq > $@ 
 	test -d ../openxpki/core/i18n/extra && cp $@ ../openxpki/core/i18n/extra
 
+contrib/i18n/openxpki-cust.i18n:
+	@grep -rhoEe 'I18N_OPENXPKI_UI_CUST\w+' config.d template | sort | uniq > $@ 
+	
+certgen: contrib/certgen.yaml
+	docker run -u $(shell id -u ${USER}) -v $(shell pwd):/config  whiterabbitsecurity/openxpki3ee certgen /config/contrib/certgen.yaml /config/certgen/ca
+
+
 # TODO: clean up this section
 #
 # To also show customer-specific help, add something like the
