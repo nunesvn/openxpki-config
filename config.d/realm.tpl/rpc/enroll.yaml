@@ -78,8 +78,6 @@ policy:
     # the chain including the root certificate (key chain).
     export_certificate: chain
 
-<<<<<<< HEAD
-=======
 
     # Those options are pulled by the revoke_by_entity workflow, they have no
     # effect on the enrollment workflow! You must set at least one of them or
@@ -92,7 +90,6 @@ policy:
     # subject: "*"
 
 
->>>>>>> local/develop
 profile:
   cert_profile: tls_server
   cert_subject_style: enroll
