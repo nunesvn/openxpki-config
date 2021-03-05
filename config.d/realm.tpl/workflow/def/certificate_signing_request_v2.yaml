@@ -900,6 +900,7 @@ acl:
         fail: 1
         resume: 1
         wakeup: 1
+        archive: 1
         history: 1
         techlog: 1
         attribute: 1
