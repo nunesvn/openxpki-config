@@ -6,3 +6,14 @@ Volatile:
 
 NoHistory:
     class: OpenXPKI::Server::Workflow::Persister::NoHistory
+
+Archiver:
+    class: OpenXPKI::Server::Workflow::Persister::Archiver
+    cleanup_defaults:
+        field: finished
+        attribute: none
+        history: archived
+    onfail_defaults:
+        field: keep
+        attribute: drop
+        history: keep
