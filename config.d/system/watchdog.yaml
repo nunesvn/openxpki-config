@@ -12,6 +12,8 @@ interval_sleep_overload: 15
 
 interval_session_purge: 300
 
+interval_auto_archiving: 5
+
 # You should not change this unless you know what you are doing
 max_instance_count: 1
 disabled: 0
