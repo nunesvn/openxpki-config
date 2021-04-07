@@ -31,3 +31,13 @@ System:
     label: System
     role: System
 
+OIDC:
+    type: NoAuth
+    role: User
+    authinfo:
+        # if you use realm based URIs you need to adjust those URLs
+        # to point to the right targets
+        # Welcome page after the login succeeded, can be omitted to stay in the ODIC session
+        login: /openxpki/#/openxpki/welcome
+        # Redirect after logout, this MUST have another prefix to avoid an immediate re-login
+        logout: /oidclogin/redirect_uri?logout=/openxpki/#/openxpki/login!logout

@@ -16,3 +16,18 @@ Certificate:
 _System:
     handler: System
 
+OIDC:
+    handler: OIDC
+    label: Login with OpenID Connect
+    type: client
+    param:
+        # those urls are used during the initial login only
+        # urls for session resume and logout are in the handler config
+        login: /oidclogin/#/
+        logout: /oidclogin/redirect_uri?logout=[% baseurl %]openxpki/login!logout
+        envkeys:
+            username: OIDC_CLAIM_email
+            name: OIDC_CLAIM_family_name
+            gname: OIDC_CLAIM_given_name
+            realname: OIDC_CLAIM_name
+            email: OIDC_CLAIM_email
