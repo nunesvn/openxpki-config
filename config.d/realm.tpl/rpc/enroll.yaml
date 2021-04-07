@@ -40,6 +40,13 @@ policy:
     # If not autoapproved, allow opeerator to add approval by hand
     allow_man_approv: 1
 
+
+    # enable if you use onbehalf certificates that are issued by CAs
+    # not managed by this OpenXPKI instance. You need import the issuer
+    # chains to get them validated, the certificates can then be used in
+    # the authorized_signer rules
+    allow_external_signer: 0
+
     # if the eligibility check failed the first time
     # show a button to run a recheck (Workflow goes to PENDING)
     allow_eligibility_recheck: 0
