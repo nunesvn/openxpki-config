@@ -2,4 +2,5 @@ class: OpenXPKI::Server::Workflow::Activity::Tools::EvaluateApprovalRules
 param:
     _map_approval_points: $p_approval_points
     record_approvals: 1
+    error_key: approval_errors
 

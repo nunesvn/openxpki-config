@@ -1,0 +1,10 @@
+label: I18N_OPENXPKI_UI_WORKFLOW_FIELD_APPROVAL_ERRORS_LABEL
+name: approval_errors
+format: deflist
+yaml_template: |
+  [% FOREACH item = value %]
+  - label: [% item.rule %] ([% IF item.points; item.points; ELSE; '!'; END %])
+    value: [% IF item.error.size %][% FOREACH err = item.error %]
+     - [% err %]
+  [% END %][% ELSE %]---[% END %]
+  [% END %]

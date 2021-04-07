@@ -195,6 +195,7 @@ state:
           - is_replace
           - is_eligible
           - eligibility_result
+          - approval_errors
           - transaction_id
           - signer_cert_identifier
           - signer_revoked
@@ -245,6 +246,7 @@ state:
           - is_replace
           - is_eligible
           - eligibility_result
+          - approval_errors
           - transaction_id
           - signer_cert_identifier
           - signer_revoked
@@ -322,6 +324,7 @@ state:
           - is_replace
           - is_eligible
           - eligibility_result
+          - approval_errors
           - transaction_id
           - signer_cert_identifier
           - signer_revoked
