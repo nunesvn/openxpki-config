@@ -129,9 +129,9 @@ eligible:
 
 approval_rules:
   - name: Approve only if wellformed and lowercase SAN
-    class: Regex    
+    class: Regex
     param:
-        san_dns: \A((?!-)[a-zA-Z0-9-]{0,62}[a-zA-Z0-9]\.)+[a-zA-Z]{2,63}\z
+        san_dns: \A((?!-)[a-z0-9-]{0,62}[a-z0-9]\.)+[a-z]{2,63}\z
         cn_as_san: 1
  
 connector:
