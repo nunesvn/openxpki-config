@@ -289,11 +289,10 @@ state:
     REVOKE_DONE:
         autorun: 1
         action:
-         - export_certificate > SUCCESS ? need_export_certificate !need_export_certificate_with_chain !need_export_certificate_with_fullchain
-         - export_chain export_certificate > SUCCESS ? need_export_certificate_with_chain
-         - export_fullchain export_certificate > SUCCESS ? need_export_certificate_with_fullchain
+         - global_export_certificate > SUCCESS ? need_export_certificate !need_export_certificate_with_chain !need_export_certificate_with_fullchain
+         - global_export_chain global_export_certificate > SUCCESS ? need_export_certificate_with_chain
+         - global_export_fullchain global_export_certificate > SUCCESS ? need_export_certificate_with_fullchain
          - global_noop > SUCCESS ? !need_export_certificate !need_export_certificate_with_chain !need_export_certificate_with_fullchain
-
 
     SUCCESS:
         label: I18N_OPENXPKI_UI_WORKFLOW_STATE_CERT_ENROLL_SUCCESS_LABEL
@@ -604,26 +603,6 @@ action:
             _map_notify_to: $url_requester
             _map_transaction_id: $transaction_id
             message: enroll_rejected
-
-    export_certificate:
-        class: OpenXPKI::Server::Workflow::Activity::Tools::CertificateExport
-        param:
-            _map_cert_identifier: $cert_identifier
-            target_key: certificate
-
-    export_chain:
-        class: OpenXPKI::Server::Workflow::Activity::Tools::CertificateExport
-        param:
-            _map_cert_identifier: $cert_identifier
-            target_key: chain
-            template: '[% chain.join("\n") %]'
-
-    export_fullchain:
-        class: OpenXPKI::Server::Workflow::Activity::Tools::CertificateExport
-        param:
-            _map_cert_identifier: $cert_identifier
-            target_key: chain
-            template: '[% chain.join("\n"); "\n"; ca %]'
 
     parse_pkcs7:
         class: OpenXPKI::Server::Workflow::Activity::Tools::ParsePKCS7
