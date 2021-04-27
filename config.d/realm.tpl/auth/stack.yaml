@@ -1,25 +1,39 @@
-Operator:
-    handler: Operator Password
+Anonymous:
+    label: Anonymous
+    handler: Anonymous
+    type: anon
 
-User: 
+User:
+    label: User Login
     handler: Operator As User Password
+    type: passwd
 
-Operator LDAP:
-    handler: Operator LDAP
+Operator:
+    label: Operator Login
+    handler: Operator Password
+    type: passwd
 
-User LDAP:
-    handler: User LDAP
-
-Certificate:
-    handler: Certificate
 
 _System:
     handler: System
+
+Certificate:
+    label: Client certificate
+    handler: Certificate
+    type: x509
+    sign: ~
+        # This is the public key matching the private one given in webui/default.conf
+        # Use "openssl pkey -pubout" to create the required string from the private key
+        # key: MFkwEwYHK.......pK7qV/FmDw==
 
 OIDC:
     handler: OIDC
     label: Login with OpenID Connect
     type: client
+    sign: ~
+        # This is the public key matching the private one given in webui/default.conf
+        # Use "openssl pkey -pubout" to create the required string from the private key
+        # key: MFkwEwYHK.......pK7qV/FmDw==
     param:
         # those urls are used during the initial login only
         # urls for session resume and logout are in the handler config
@@ -31,3 +45,4 @@ OIDC:
             gname: OIDC_CLAIM_given_name
             realname: OIDC_CLAIM_name
             email: OIDC_CLAIM_email
+

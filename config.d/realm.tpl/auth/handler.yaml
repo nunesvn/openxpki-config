@@ -1,8 +1,7 @@
 Certificate:
     type: ClientX509
-    label: Certificate
-    description: I18N_OPENXPKI_CONFIG_AUTH_HANDLER_DESCRIPTION_CERTIFICATE_WEBSERVER
     role: User
+    arg: CN
     trust_anchor:
         realm: democa
 
@@ -28,7 +27,6 @@ User LDAP:
 
 System:
     type: Anonymous
-    label: System
     role: System
 
 OIDC:

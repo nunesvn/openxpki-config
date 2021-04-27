@@ -1,6 +1,7 @@
-# DO NOT TOUCH THIS FILE
-# this file is NOT intended for manual use
-# use the oxi-gen-vault tool found at usr/share/openxpki/bin
+# Use this file to genereate the self-signed DataVault certificate
+# Note that the key will be unencrypted!
+# openssl req -new -keyout vault.key -out vault.crt -days 1100 \
+#    -config vault.openssl.cnf
 
 [ req ]
 default_bits = 3072
