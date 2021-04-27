@@ -1,3 +1,7 @@
+
+Anonymous:
+    type: Anonymous
+
 Certificate:
     type: ClientX509
     role: User
