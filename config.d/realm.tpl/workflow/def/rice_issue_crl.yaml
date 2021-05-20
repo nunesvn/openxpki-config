@@ -1,0 +1,62 @@
+head:
+    prefix: ricecrl
+    persister: Volatile
+
+state:
+    INITIAL:
+        action:
+          - initialize global_nice_issue_crl export_crl > SUCCESS
+
+    SUCCESS: ~
+
+action:
+    initialize:
+        class: OpenXPKI::Server::Workflow::Activity::Tools::GetAliasByIdentifier
+        param:
+            _map_cert_identifier: $issuer_identifier
+        input:
+          - issuer_identifier
+          - crl_profile
+          - max_revocation_id
+        validator:
+          - is_issuer
+
+    export_crl:
+        class: OpenXPKI::Server::Workflow::Activity::Tools::CRLExport
+        param:
+            _map_crl_serial: $crl_serial
+            _map_crl_profile: $crl_profile
+            format: PEM
+            target_key: pem
+
+
+field:
+    issuer_identifier:
+        name: issuer_identifier
+        type: server
+        api_type: Str
+    
+    crl_profile:
+        name: crl_profile
+        type: server
+        api_type: Str
+
+    max_revocation_id:
+        name: max_revocation_id
+        type: server
+        api_type: Str
+
+validator:
+    is_issuer:
+        class: OpenXPKI::Server::Workflow::Validator::CertIdentifierExists
+        param:
+            is_token: certsign
+        arg:
+          - $issuer_identifier
+
+acl:
+    System:
+        creator: any
+
+    Anonymous:
+        creator: any

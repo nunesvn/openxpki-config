@@ -1,0 +1,115 @@
+head:
+    prefix: ricecrr
+    label: I18N_OPENXPKI_UI_WORKFLOW_TYPE_CERTIFICATE_REVOCATION_REQUEST_LABEL
+    description: I18N_OPENXPKI_UI_WORKFLOW_TYPE_CERTIFICATE_REVOCATION_REQUEST_DESC
+
+state:
+    INITIAL:
+        label: I18N_OPENXPKI_UI_WORKFLOW_STATE_CRR_INITIAL_LABEL
+        description: I18N_OPENXPKI_UI_WORKFLOW_STATE_CRR_INITIAL_DESC
+        action:
+          - initialize set_workflow_attributes global_check_authorized_signer_external > CHECK_AUTHORIZATION
+
+    CHECK_AUTHORIZATION:
+        autorun: 1
+        action:
+         - get_revocation_info > SUCCESS ? global_is_signer_signature_valid !global_is_not_yet_revoked_or_pending
+         - persist_crr global_nice_revoke_certificate get_revocation_info > SUCCESS ? global_is_signer_signature_valid global_is_not_yet_revoked_or_pending
+         - global_set_error_signer_not_authorized > REJECTED ? !global_is_signer_signature_valid
+  
+    REJECTED:
+        label: I18N_OPENXPKI_UI_WORKFLOW_STATE_CRR_REJECTED_LABEL
+        description: I18N_OPENXPKI_UI_WORKFLOW_STATE_CRR_REJECTED_DESC
+        output:
+          - error_code
+          - cert_identifier
+          - signer_cert
+          
+    FAILURE:
+        label: I18N_OPENXPKI_UI_WORKFLOW_STATE_CRR_FAILURE_LABEL
+        description: I18N_OPENXPKI_UI_WORKFLOW_STATE_CRR_FAILURE_DESC
+        output:
+          - error_code
+          - cert_identifier
+
+    SUCCESS:
+        label: I18N_OPENXPKI_UI_WORKFLOW_STATE_CRR_SUCCESS_LABEL
+        description: I18N_OPENXPKI_UI_WORKFLOW_STATE_CRR_SUCCESS_DESC
+        output:
+          - cert_identifier
+          - revocation_id
+          - reason_code
+          - invalidity_time
+          - comment
+
+action: 
+    initialize:
+        class: OpenXPKI::Server::Workflow::Activity::Tools::SetSource
+        label: I18N_OPENXPKI_UI_WORKFLOW_ACTION_CREATE_CRR_LABEL
+        description: I18N_OPENXPKI_UI_WORKFLOW_ACTION_CREATE_CRR_DESC
+        input:
+          - cert_identifier
+          - reason_code
+          - comment
+          - revocation_time
+          - invalidity_time
+          - server
+          - interface
+          - signer_cert
+        validator:
+          - validate_invalidity_time
+          - global_reason_code
+          - global_cert_identifier_exists
+
+    persist_crr:
+        class: OpenXPKI::Server::Workflow::Activity::CRR::PersistRequest
+        param:
+            _map_revocation_time: $revocation_time
+ 
+    set_workflow_attributes:
+        class: OpenXPKI::Server::Workflow::Activity::Tools::SetAttribute
+        param:
+           _map_cert_subject: "[% USE Certificate %][% Certificate.body(context.cert_identifier, 'subject') %]"
+
+    get_revocation_info:
+        class: OpenXPKI::Server::Workflow::Activity::Tools::SetContext
+        param:
+            _map_revocation_id: "[% USE Certificate; Certificate.get_hash(context.cert_identifier).revocation_id %]"
+            _map_revocation_time: "[% USE Certificate; Certificate.get_hash(context.cert_identifier).revocation_time %]"
+            _map_invalidity_time: "[% USE Certificate; Certificate.get_hash(context.cert_identifier).invalidity_time %]"
+            _map_reason_code: "[% USE Certificate; Certificate.get_hash(context.cert_identifier).reason_code %]"
+
+validator:
+    validate_invalidity_time:
+        class: OpenXPKI::Server::Workflow::Validator::InvalidityTime
+        arg:
+          - $invalidity_time
+          - $cert_identifier
+
+acl:
+    Anonymous:
+        creator: self
+
+    CA Operator:
+        creator: any
+
+    RA Operator:
+        creator: any
+        fail: 1
+        resume: 1
+        wakeup: 1
+        history: 1
+        techlog: 1
+        attribute: 1
+        context: 1
+
+    System:
+        creator: self
+        fail: 1
+        resume: 1
+        wakeup: 1
+        history: 1
+        techlog: 1
+        attribute: 1
+        context: 1
+ 

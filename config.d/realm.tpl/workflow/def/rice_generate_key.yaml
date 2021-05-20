@@ -1,0 +1,126 @@
+head:
+    prefix: ricegenkey
+    persister: Volatile
+
+state:
+    INITIAL:
+        action: initialize > KEY_CREATED
+
+    KEY_CREATED:
+        autorun: 1
+        action:
+          - persist_key_infinite > SUCCESS ? need_persist !has_expiry_date key_exists
+          - persist_key_with_expiry > SUCCESS ? need_persist has_expiry_date key_exists
+          - global_noop > SUCCESS ? !need_persist key_exists
+          - global_noop2 > FAILURE ? !key_exists
+
+    SUCCESS:
+        output:
+          - _private_key
+
+    FAILURE:
+        output:
+          - error_code
+
+action:
+    initialize:
+        class: OpenXPKI::Server::Workflow::Activity::NICE::GenerateKey
+        param:
+            _map_enc_alg: $enc_alg
+            _map_key_alg: $key_alg
+            _map_key_gen_params: $key_gen_params
+            _map_password: $_password
+            target_key: _private_key
+        input:
+         - enc_alg
+         - key_alg
+         - key_gen_params
+         - _password
+         - expiry
+        validator:
+         - validate_expiry_time
+
+    persist_key_infinite:
+        class: OpenXPKI::Server::Workflow::Activity::Tools::Datapool::SetEntry
+        param:
+            namespace: certificate.privatekey
+            _map_key: $_private_key.key_id
+            _map_value: $_private_key.pkey
+            encrypt: 1
+            force: 0
+
+    persist_key_with_expiry:
+        class: OpenXPKI::Server::Workflow::Activity::Tools::Datapool::SetEntry
+        param:
+            namespace: certificate.privatekey
+            _map_key: $_private_key.key_id
+            _map_value: $_private_key.pkey
+            encrypt: 1
+            force: 0
+            _map_expiration_date: $expiry
+
+condition:
+    # literal 0 is true
+    need_persist:
+        class: OpenXPKI::Server::Workflow::Condition::IsNotEmpty
+        param:
+            key: expiry
+
+  # literal 0 is false
+    has_expiry_date:
+        class: Workflow::Condition::Evaluate
+        param:
+            test: $expiry
+
+    key_exists:
+        class: Workflow::Condition::Evaluate
+        param:
+            test: $context->{_private_key}
+
+validator:
+    validate_expiry_time:
+        class: OpenXPKI::Server::Workflow::Validator::ValidityString
+        param:
+            format: detect
+            condition: gte
+            error: Expiry time must be zero or define a date in the future
+        arg:
+          - $expiry
+
+field:
+    enc_alg:
+        label: I18N_OPENXPKI_UI_WORKFLOW_FIELD_ENC_ALG_LABEL
+        name: enc_alg
+        type: server
+        api_type: Str
+
+    key_alg:
+        label: I18N_OPENXPKI_UI_WORKFLOW_FIELD_KEY_ALG_LABEL
+        name: key_alg
+        type: server
+        required: 1
+        api_type: Str
+
+    key_gen_params:
+        label: I18N_OPENXPKI_UI_WORKFLOW_FIELD_KEY_GEN_PARAMS_LABEL
+        name: key_gen_params
+        type: server
+        api_type: Object
+
+    _password:
+        name: _password
+        type: server
+        api_type: Str
+
+    expiry:
+        name: expiry
+        type: server
+        api_type: Str
+
+    _private_key:
+        name: _private_key
+        api_type: Object
+
+acl:
+    System:
+        creator: any

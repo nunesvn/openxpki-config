@@ -1,0 +1,160 @@
+head:
+    prefix: riceenroll
+
+state:
+    INITIAL:
+        action:
+          - initialize calculate_transaction_id global_check_authorized_signer_external > CHECK_AUTHORIZATION
+
+    CHECK_AUTHORIZATION:
+        autorun: 1
+        action:
+         - find_existing_certificates check_for_existing_workflow > AUTHORIZED ? global_is_signer_signature_valid
+         - global_set_error_signer_not_authorized > FAILURE ? !global_is_signer_signature_valid
+
+    AUTHORIZED:
+        autorun: 1
+        action:
+         # another request is on its way
+         - global_noop > CANCELED ? has_request_pending
+         # useable certificate exists - republish
+         - global_noop2 > CERTIFICATE_EXISTS ? global_has_cert_identifier_set !has_request_pending
+         # we need a certificate
+         - global_create_lock global_persist_csr global_nice_issue_certificate set_static_metadata global_release_lock > CERTIFICATE_EXISTS ? !global_has_cert_identifier_set !has_request_pending
+
+    CERTIFICATE_EXISTS:
+        autorun: 1
+        action: export_certificate export_chain > SUCCESS
+
+    SUCCESS:
+        output:
+         - cert_identifier
+         - transaction_id
+         - signer_cert_identifier
+         - interface
+         - server
+         - certificate
+         - chain
+
+    FAILURE:
+        output:
+         - error_code
+         - transaction_id
+         - signer_cert_identifier
+         - interface
+         - server
+
+    CANCELED:
+        output:
+         - transaction_id
+         - signer_cert_identifier
+         - interface
+         - server
+
+action:
+    initialize:
+        class: OpenXPKI::Server::Workflow::Activity::Tools::SetSource
+        input:
+         - signer_cert
+         - interface
+         - server
+         - pkcs10
+         - transaction_id
+         - cert_profile
+         - cert_subject
+         - cert_subject_alt_name
+         - cert_extension
+         - notbefore
+         - notafter
+        validator:
+          - required_inputs
+
+    parse_pkcs10:
+        class: OpenXPKI::Server::Workflow::Activity::Tools::ParsePKCS10
+        param:
+            cert_profile: none
+            key_params: 1
+            # use volatile parameters as we are not interessted in this
+            subject_prefix: _
+
+    calculate_transaction_id:
+        class: OpenXPKI::Server::Workflow::Activity::Tools::SetContext
+        param:
+           _map_transaction_id: >
+              [% IF context.transaction_id %][% context.transaction_id %]
+              [% ELSE %][% USE PKCS10 %][% PKCS10.transaction_id(context.pkcs10) %][% END %]
+
+    check_for_existing_workflow:
+        class: OpenXPKI::Server::Workflow::Activity::Tools::Datapool::GetEntry
+        param:
+            namespace: transaction_id
+            _map_key: $transaction_id
+            target_key: request_workflow_id
+
+    find_existing_certificates:
+        class: OpenXPKI::Server::Workflow::Activity::Tools::SearchCertificates
+        param:
+            _map_meta_transaction_id: $transaction_id
+            order: notbefore desc
+            limit: single
+
+    set_static_metadata:
+        class: OpenXPKI::Server::Workflow::Activity::Tools::AppendCertificateMetadata
+        param:
+           _map_cert_identifier: $cert_identifier
+           _map_meta_transaction_id: $transaction_id
+
+    export_certificate:
+        class: OpenXPKI::Server::Workflow::Activity::Tools::CertificateExport
+        param:
+            _map_cert_identifier: $cert_identifier
+            target_key: certificate
+
+    export_chain:
+        class: OpenXPKI::Server::Workflow::Activity::Tools::CertificateExport
+        param:
+            _map_cert_identifier: $cert_identifier
+            target_key: chain
+            template: '[% chain.join("\n") %]'
+
+
+field:
+    cert_extension:
+        name: cert_extension
+        type: server
+
+condition:
+    has_request_pending:
+        class: Workflow::Condition::Evaluate
+        param:
+            test: $context->{request_workflow_id}
+
+
+validator:
+    required_inputs:
+        class: OpenXPKI::Server::Workflow::Validator::BasicFieldType
+        arg:
+         - pkcs10:::1
+         - cert_subject:::1
+         - cert_profile:::1
+
+acl:
+    System:
+        creator: any
+        fail: 1
+        resume: 1
+        wakeup: 1
+        history: 1
+        techlog: 1
+        attribute: 1
+        context: 1
+
+    RA Operator:
+        creator: any
+        fail: 1
+        resume: 1
+        wakeup: 1
+        history: 1
+        techlog: 1
+        attribute: 1
+        context: 1

@@ -1,0 +1,33 @@
+head:
+    prefix: ricestatus
+    persister: Volatile
+
+state:
+    INITIAL:
+        action:
+          - initialize > SUCCESS
+
+    SUCCESS: ~
+
+action:
+    initialize:
+        class: OpenXPKI::Server::Workflow::Activity::Tools::SetContext
+        param:
+            _map_notbefore: "[% USE Certificate %][% Certificate.notbefore(context.cert_identifier) %]"
+            _map_notafter: "[% USE Certificate %][% Certificate.notafter(context.cert_identifier) %]"
+            _map_status: "[% USE Certificate %][% Certificate.status(context.cert_identifier) %]"
+            _map_revocation_id: "[% USE Certificate; Certificate.get_hash(context.cert_identifier).revocation_id %]"
+            _map_revocation_time: "[% USE Certificate; Certificate.get_hash(context.cert_identifier).revocation_time %]"
+            _map_invalidity_time: "[% USE Certificate; Certificate.get_hash(context.cert_identifier).invalidity_time %]"
+            _map_reason_code: "[% USE Certificate; Certificate.get_hash(context.cert_identifier).reason_code %]"
+        input:
+          - cert_identifier
+        validator:
+          - global_cert_identifier_exists
+
+acl:
+    System:
+        creator: any
+
+    Anonymous:
+        creator: any

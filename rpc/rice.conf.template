@@ -1,0 +1,70 @@
+# This file provides the RPC endpoints for the CA side when using RA/CA
+# split with the RICE module. Create a copy of this file for each realm
+# with the name you set on the RA side (usually the realm name), change
+# the realm name here in the [global] section and create the file
+# "rpc/rice.yaml" inside the realm with an "authorized_signer" section
+# matching the client certificate used by RA side.
+# Add all workflows starting with "rice_" from the template directory
+
+[global]
+log_config = /etc/openxpki/rpc/log.conf
+log_facility = client.rpc
+socket = /var/openxpki/openxpki.socket
+realm = democa
+
+[auth]
+stack = _System
+
+[input]
+allow_raw_post = 1
+parse_depth = 5
+
+[output]
+use_http_status_codes=0
+
+[RequestCertificate]
+workflow = rice_enroll
+param = pkcs10, transaction_id, cert_subject, cert_subject_alt_name, cert_profile, notbefore, notafter
+output = cert_identifier, certificate, chain, error_code, transaction_id
+env = signer_cert
+servername = rice
+pickup = transaction_id
+
+[RevokeCertificate]
+workflow = rice_revoke
+param = cert_identifier, reason_code, comment, revocation_time, invalidity_time
+env = signer_cert
+servername = rice
+output = error_code, revocation_id, reason_code, revocation_time, invalidity_time
+
+[CertificateStatus]
+workflow = rice_cert_status
+param = cert_identifier
+output = cert_identifier, notbefore, notafter, status, error_code, revocation_id, reason_code, revocation_time, invalidity_time
+
+[IssueCRL]
+workflow = rice_issue_crl
+param = issuer_identifier, crl_profile, max_revocation_id
+output = pem, error_code, max_revocation_id
+
+[FetchCRL]
+workflow = rice_fetch_crl
+param = issuer_identifier
+output = pem, error_code
+
+[GenerateKey]
+workflow = rice_generate_key
+param = enc_alg, key_alg, key_gen_params, _password, expiry
+output = _private_key, error_code
+
+[FetchKey]
+workflow = rice_fetch_key
+param = key_id, _password
+output = _private_key, error_code
+
+[TestConnection]
+workflow = connection_test
+env = signer_cert, signer_chain
+servername = rice
+output = signer_trusted, signer_authorized, signer_validity_ok, signer_revoked, signer_cert_identifier, signer_subject, signer_subject_key_identifier, signer_in_current_realm, error_code, hostname
+

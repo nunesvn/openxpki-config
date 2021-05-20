@@ -1,0 +1,43 @@
+head:
+    prefix: ricecrlexport
+    persister: Volatile
+
+state:
+    INITIAL:
+        action:
+          - export_crl > SUCCESS
+
+    SUCCESS: ~
+
+action:
+    export_crl:
+        class: OpenXPKI::Server::Workflow::Activity::Tools::CRLExport
+        param:
+            _map_issuer_identifier: $issuer_identifier
+            format: PEM
+            target_key: pem
+        input:
+          - issuer_identifier
+        validator:
+          - is_issuer
+
+field:
+    issuer_identifier:
+        name: issuer_identifier
+        type: server
+        api_type: Str
+
+validator:
+    is_issuer:
+        class: OpenXPKI::Server::Workflow::Validator::CertIdentifierExists
+        param:
+            is_token: certsign
+        arg:
+          - $issuer_identifier
+
+acl:
+    System:
+        creator: any
+
+    Anonymous:
+        creator: any

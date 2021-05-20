@@ -1,0 +1,63 @@
+head:
+    prefix: ricefetchkey
+    persister: Volatile
+
+state:
+    INITIAL:
+        action: initialize > KEY_EXISTS
+
+    KEY_EXISTS:
+        autorun: 1
+        action:
+          - global_noop > SUCCESS ? key_exists
+          - global_set_error_export_private_key_failed > FAILURE ? !key_exists
+
+    SUCCESS:
+        output:
+          - _private_key
+
+    FAILURE:
+        output:
+          - error_code
+
+action:
+    initialize:
+        class: OpenXPKI::Server::Workflow::Activity::NICE::FetchKey
+        param:
+            _map_key_id: $key_id
+            _map_password: $_password
+            target_key: _private_key
+        input:
+         - key_id
+         - _password
+
+condition:
+    key_exists:
+        class: Workflow::Condition::Evaluate
+        param:
+            test: $context->{_private_key}
+
+field:
+    key_id:
+        name: key_id
+        type: server
+        api_type: Str
+
+    enc_alg:
+        label: I18N_OPENXPKI_UI_WORKFLOW_FIELD_ENC_ALG_LABEL
+        name: enc_alg
+        type: server
+        api_type: Str
+
+    _password:
+        name: _password
+        type: server
+        api_type: Str
+
+    _private_key:
+        name: _private_key
+        api_type: Object
+
+acl:
+    System:
+        creator: any
