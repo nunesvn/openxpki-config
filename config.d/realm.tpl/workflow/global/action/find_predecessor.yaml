@@ -1,0 +1,9 @@
+# Find possible predecessor to detect a non-self signed renewal
+class: OpenXPKI::Server::Workflow::Activity::Tools::SearchCertificates
+param:
+  _map_cutoff_notafter: +0003
+  _map_cert_subject: $cert_subject 
+  entity_only: 1
+  limit: single 
+  target_key: renewal_cert_identifier
+
