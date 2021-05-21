@@ -1,0 +1,8 @@
+class: OpenXPKI::Server::Workflow::Activity::Tools::SetContext
+param:
+    _map_reason_code: >
+      [% reason_map = { 'key-compromise' => 'keyCompromise' };
+      rid = context.revocation_reason;
+      IF reason_map.$rid; reason_map.$rid; ELSE %]unspecified[% END %]
+
+
