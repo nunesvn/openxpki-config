@@ -364,5 +364,6 @@ wfdetails:
     - label: I18N_OPENXPKI_UI_WORKFLOW_PROC_STATE_LABEL
       field: proc_state
 
-    - label: I18N_OPENXPKI_UI_WORKFLOW_ARCHIVE_AFTER_LABEL
-      field: archive_after
+    - label: I18N_OPENXPKI_UI_WORKFLOW_ARCHIVE_AT_LABEL
+      field: archive_at
+      format: timestamp
