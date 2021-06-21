@@ -17,6 +17,11 @@ Operator:
 _System:
     handler: System
 
+_RPC:
+    handler: CertificateRPC
+    type: x509
+    sign: ~
+
 Certificate:
     label: Client certificate
     handler: Certificate

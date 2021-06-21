@@ -9,6 +9,14 @@ Certificate:
     trust_anchor:
         realm: democa
 
+CertificateRPC:
+    type: ClientX509
+    role: System
+    arg: certid
+    namespace: certid
+    trust_anchor:
+        realm: democa
+
 Operator Password:
     type: Connector
     role: RA Operator
