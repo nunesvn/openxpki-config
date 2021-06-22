@@ -96,7 +96,13 @@ acl:
         fail: 1
         resume: 1
         wakeup: 1
+<<<<<<< HEAD
         archive: 1
+=======
+        context: 1
+        history: 1
+        techlog: 1
+>>>>>>> af01b44... Improve BulkCRR Workflow using global items, update persister config
 
     System:
         creator: any
