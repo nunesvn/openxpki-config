@@ -5,9 +5,13 @@ label: Enrollment
 # expire within this period of time.
 renewal_period: 000060
 
-# Allow renewal after the certificate has already expired 
+# Allow renewal after the certificate has already expired
 # within this grace period
 # renewal_grace_period: 000005
+
+# Create certificates for initial requests with a short validity to
+# allow an immediate renewal
+initial_validity: +000030
 
 # If the request was a replacement, optionally revoke the replaced
 # certificate after a grace period
@@ -15,6 +19,8 @@ revoke_on_replace:
     reason_code: keyCompromise
     delay_revocation_time: +000014
 
+# if you remove this section, any non-renewal request will be treated
+# as an initial request, this works around non-standard MDM and devices
 authorized_signer:
     rule1:
         # Full DN
@@ -50,16 +56,16 @@ policy:
     # if the eligibility check failed the first time
     # show a button to run a recheck (Workflow goes to PENDING)
     allow_eligibility_recheck: 0
-    
-    # Approval points are used to set a threshold for the system to grant 
-    # approval, and they help measure a request to see whether the 
-    # requirement is fulfilled. If you set this to "0", no points are 
-    # required and all authenticated requests are auto-approved.    
-    # If the eligibilty check returned success and no approval rules are 
-    # defined, you get one point for the passed check. If approval rules 
-    # are given, the eligibility check is a prereq for their evaluation 
-    # and there is NO point for the eligibility check itself! 
-    # If you dont reach the required number of points after this step and 
+
+    # Approval points are used to set a threshold for the system to grant
+    # approval, and they help measure a request to see whether the
+    # requirement is fulfilled. If you set this to "0", no points are
+    # required and all authenticated requests are auto-approved.
+    # If the eligibilty check returned success and no approval rules are
+    # defined, you get one point for the passed check. If approval rules
+    # are given, the eligibility check is a prereq for their evaluation
+    # and there is NO point for the eligibility check itself!
+    # If you dont reach the required number of points after this step and
     # allow_man_approv is set you can fill up the missing points by a
     # manual operator approval (one point per operator)
     approval_points: 1
@@ -68,7 +74,7 @@ policy:
     # to exist at the same time, deducted by one if a renewal is seen
     # set to 0 if you dont want to check for duplicates at all
     max_active_certs: 1
- 
+
     # If an initial enrollment is seen
     # all existing certificates with the same subject are revoked
     auto_revoke_existing_certs: 1
@@ -133,7 +139,7 @@ approval_rules:
     param:
         san_dns: \A((?!-)[a-z0-9-]{0,62}[a-z0-9]\.)+[a-z]{2,63}\z
         cn_as_san: 1
- 
+
 connector:
     intranet:
         class: OpenXPKI::Connector::Regex

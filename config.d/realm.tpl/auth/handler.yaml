@@ -1,7 +1,11 @@
-
+# Those stacks are usually required so you should not remove them
 Anonymous:
     type: Anonymous
+    label: Anonymous
 
+# Using the default config this allows a user login with ANY certificate
+# issued by the democa which has the client auth keyUsage bit set
+# the commonName is used as username!
 Certificate:
     type: ClientX509
     role: User
