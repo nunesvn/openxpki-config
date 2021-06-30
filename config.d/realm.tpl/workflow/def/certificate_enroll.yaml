@@ -45,8 +45,8 @@ state:
     HAS_VALID_PKCS7_SIGNATURE:
         autorun: 1
         action:
-          - global_check_authorized_signer > SIGNED_REQUEST ? global_is_signed_request
-          - global_set_error_invalid_signature > FAILURE ? !global_is_signed_request
+          - global_check_authorized_signer > SIGNED_REQUEST ? is_pkcs7_signature_valid
+          - global_set_error_invalid_signature > FAILURE ? !is_pkcs7_signature_valid
 
     # Determine the type of request
     # inital anonymous = self signed (key and subject)
@@ -615,6 +615,7 @@ action:
         param:
             _map_pkcs7: $pkcs7
             target_key: _pkcs10
+            target_key_envelope: pkcs7_envelope
 
     set_pkcs10_from_payload:
         class: OpenXPKI::Server::Workflow::Activity::Tools::SetContext
@@ -788,6 +789,18 @@ condition:
         param:
             test: ($context->{p_export_certificate} && $context->{p_export_certificate} eq "fullchain")
 
+
+    is_pkcs7_signature_valid:
+        class: Workflow::Condition::LazyAND
+        param:
+            condition1: enroll_is_pkcs7_signature_alg_accepted
+            condition2: global_is_signed_request
+
+    is_pkcs7_signature_alg_accepted:
+        class: OpenXPKI::Server::Workflow::Condition::ValidateRuleset
+        param:
+            ruleset_name: pkcs7_signature_rules
+            _map_input: $pkcs7_envelope
 
 validator:
     need_pkcs7_or_pkcs10:

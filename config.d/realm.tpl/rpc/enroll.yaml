@@ -29,6 +29,11 @@ authorized_signer:
         # Full DN
             subject: CN=my.scep.enroller.com:generic,.*
 
+# if you want to use pkcs7 signature containers you must set the
+# accepted signature parameters here.
+#pkcs7_signature_rules:
+#    digest_alg: sha2
+
 policy:
     # Authentication Options
     # Initial requests need ONE authentication.
