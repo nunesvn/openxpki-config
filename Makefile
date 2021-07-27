@@ -1,7 +1,6 @@
 # This makefile is for the WRS OpenXPKI Config package
 #
 #
-
 ############################################################
 # Generic Vars
 ############################################################
@@ -62,7 +61,7 @@ GIT_BRANCH = $(shell (git symbolic-ref HEAD 2>/dev/null||echo '(unnamed branch)'
 .PHONY: all install version
 
 # This 'all' target doesn't do anything because the config shouldn't need
-# any processing. Instead, the 'install' target just copies it 
+# any processing. Instead, the 'install' target just copies it
 # directly to the destination. Also, it is defined before the '-include's
 # so extra targets may be included without effecting the default make target.
 all:
@@ -130,7 +129,7 @@ assert-branch:
 # The 'install' target is called by rpmbuild during package creation
 # and does *not* have access to the Git information.
 # Note the use of $(DESTDIR) for debian packaging compatibility
-install: 
+install:
 	@echo "DEBUG - running target $@"
 	mkdir -p $(DESTDIR)/etc/openxpki
 	tar cf - --exclude debian --exclude package $(ETC_OXI_SUBDIRS) | tar xf - -C $(DESTDIR)/etc/openxpki
@@ -214,12 +213,12 @@ config.d/system/version.yaml:
 	git log -n 1 --format=format:"commit: \"%h\"%n" HEAD >> config.d/system/version.yaml
 
 openxpki-config-ee.i18n: config.d template
-	@grep -rhoEe 'I18N_OPENXPKI_UI_\w+' config.d template | sort | uniq > $@ 
+	@grep -rhoEe 'I18N_OPENXPKI_UI_\w+' config.d template | sort | uniq > $@
 	test -d ../openxpki/core/i18n/extra && cp $@ ../openxpki/core/i18n/extra
 
 contrib/i18n/openxpki-cust.i18n:
-	@grep -rhoEe 'I18N_OPENXPKI_UI_CUST\w+' config.d template | sort | uniq > $@ 
-	
+	@grep -rhoEe 'I18N_OPENXPKI_UI_CUST\w+' config.d template | sort | uniq > $@
+
 certgen: contrib/certgen.yaml
 	docker run -u $(shell id -u ${USER}) -v $(shell pwd):/config  whiterabbitsecurity/openxpki3ee certgen /config/contrib/certgen.yaml /config/certgen/ca
 
@@ -274,7 +273,7 @@ $(DEB_PKG): $(DEB_TARBALL) $(shell find debian -type f)
 
 debian-clean: clean
 	rm -rf $(DEB_PKG) #\
-#		debian/changelog 
+#		debian/changelog
 #		$(DEB_TARBALL) \
 #		$(PKGNAME)_$(VERSION)-$(RELEASE).debian.tar.gz \
 #	    $(PKGNAME)_$(VERSION)-$(RELEASE).dsc \
@@ -307,4 +306,4 @@ $(PKGNAME)-$(VERSION)/debian/rules: debian/rules.template
 		$< > $@.new
 	mv $@.new $@
 
-		
+# vim: tabstop=4 noexpandtab

@@ -1,16 +1,19 @@
 # Allows Anonymous Login (also from the WebUI!)
 Anonymous:
     label: Anonymous
+    description: Access for as guests without credentials
     handler: Anonymous
     type: anon
 
 User:
     label: User Login
+    description: Login with username and password with the user role
     handler: Operator As User Password
     type: passwd
 
 Operator:
     label: Operator Login
+    description: Login with username and password with the operator role
     handler: Operator Password
     type: passwd
 
@@ -24,6 +27,7 @@ _RPC:
 
 Certificate:
     label: Client certificate
+    description: Login using a client certificate
     handler: Certificate
     type: x509
     sign: ~
@@ -33,6 +37,7 @@ Certificate:
 
 OIDC:
     handler: OIDC
+    description: Login via an external IDP using OpenID Connect
     label: Login with OpenID Connect
     type: client
     sign: ~
