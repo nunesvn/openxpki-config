@@ -117,8 +117,8 @@ state:
         autorun: 1
         action:
           - global_set_error_signer_revoked > FAILURE ? global_is_signer_revoked is_signer_in_current_realm
-          - set_renewal_grace_period prepare_renewal load_recent_metadata > CHECK_RENEWAL_GRACE_PERIOD ? !global_is_signer_revoked !global_is_signer_validity_ok is_signer_in_current_realm
-          - set_renewal_period prepare_renewal load_recent_metadata > RENEWAL_PREPARED ? !global_is_signer_revoked global_is_signer_validity_ok is_signer_in_current_realm
+          - set_renewal_grace_period prepare_renewal load_recent_metadata set_renewal_validity > CHECK_RENEWAL_GRACE_PERIOD ? !global_is_signer_revoked !global_is_signer_validity_ok is_signer_in_current_realm
+          - set_renewal_period prepare_renewal load_recent_metadata set_renewal_validity > RENEWAL_PREPARED ? !global_is_signer_revoked global_is_signer_validity_ok is_signer_in_current_realm
           - global_set_error_not_in_current_realm > FAILURE ? !is_signer_in_current_realm
 
     CHECK_RENEWAL_GRACE_PERIOD:
@@ -576,6 +576,12 @@ action:
         param:
             _map_notafter: "[% USE Certificate %][% Certificate.notafter(context.signer_cert_identifier, 'epoch') %]"
             is_replace: 1
+
+    set_renewal_validity:
+        class: OpenXPKI::Server::Workflow::Activity::Tools::Connector::GetValue
+        param:
+          _map_config_path: "[% context.interface %].[% context.server %].renewal_validity"
+          target_key: notafter
 
     set_revoke_on_replace_details:
       class: OpenXPKI::Server::Workflow::Activity::Tools::Connector::GetValue

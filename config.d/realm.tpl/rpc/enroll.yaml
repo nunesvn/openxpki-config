@@ -13,6 +13,9 @@ renewal_period: 000060
 # allow an immediate renewal
 initial_validity: +000030
 
+# Override the profile validity for automated renewal requests
+#renewal_validity: +000030
+
 # If the request was a replacement, optionally revoke the replaced
 # certificate after a grace period
 revoke_on_replace:
