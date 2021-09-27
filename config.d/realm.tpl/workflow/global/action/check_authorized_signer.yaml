@@ -4,3 +4,4 @@ param:
     export_key_identifier: 1
     export_subject: 1
     _map_allow_external_signer: $p_allow_external_signer
+    _map_allow_untrusted_signer: $p_allow_untrusted_signer

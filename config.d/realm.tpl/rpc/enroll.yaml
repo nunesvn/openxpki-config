@@ -59,7 +59,11 @@ policy:
     # not managed by this OpenXPKI instance. You need import the issuer
     # chains to get them validated, the certificates can then be used in
     # the authorized_signer rules
-    allow_external_signer: 0
+    #allow_external_signer: 0
+
+    # Process signer rulesets even if the certificate chain could not be
+    # built or validated. This is only useful with external signers.
+    #allow_untrusted_signer: 0
 
     # if the eligibility check failed the first time
     # show a button to run a recheck (Workflow goes to PENDING)
