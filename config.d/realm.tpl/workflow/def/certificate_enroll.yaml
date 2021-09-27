@@ -344,6 +344,7 @@ action:
             - server
             - interface
             - signer_cert
+            - user_agent
             - comment
             - signature
             - _url_params
