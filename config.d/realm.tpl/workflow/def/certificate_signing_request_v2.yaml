@@ -327,9 +327,11 @@ state:
           - edit_san > BUILD_SUBJECT ? profile_has_san_section
           - edit_cert_info > BUILD_SUBJECT ? profile_has_info_section
           - global_cancel > CLEANUP_BEFORE_CANCEL
+          - set_validity > SUBJECT_COMPLETE
         output:
           - cert_subject
           - cert_subject_alt_name
+          - notafter
           - check_policy_dns
           - check_policy_subject_duplicate
           - check_policy_key_duplicate_certificate
@@ -353,6 +355,10 @@ state:
             format: optional
           global_cancel:
             format: failure
+          set_validity:
+            label: I18N_OPENXPKI_UI_WORKFLOW_BUTTON_SET_VALIDITY_LABEL
+            format: optional
+
 
     SUCCESS:
         label: I18N_OPENXPKI_UI_WORKFLOW_STATE_CSR_SUCCESS_LABEL
@@ -622,6 +628,17 @@ action:
         param:
           source: USER
 
+    set_validity:
+        label: I18N_OPENXPKI_UI_WORKFLOW_ACTION_CSR_SET_VALIDITY_LABEL
+        description: I18N_OPENXPKI_UI_WORKFLOW_ACTION_CSR_SET_VALIDITY_DESC
+        # Using SetContext instead of normal input parameters allows us to
+        # delete the item by setting the tilde character from the selector
+        class: OpenXPKI::Server::Workflow::Activity::Tools::SetContext
+        param:
+            _map_notafter: $notafter
+        input:
+         - cert_validity
+
     set_workflow_attributes:
         class: OpenXPKI::Server::Workflow::Activity::Tools::SetAttribute
         param:
@@ -797,6 +814,27 @@ field:
         type: select
         # The options are provided by the uihandle class!
         required: 0
+
+    cert_validity:
+        label: I18N_OPENXPKI_UI_WORKFLOW_FIELD_CERT_VALIDITY_LABEL
+        description: I18N_OPENXPKI_UI_WORKFLOW_FIELD_CERT_VALIDITY_DESC
+        type: select
+        name: notafter
+        required: 1
+        option:
+          mode: keyvalue
+          item:
+           - value: '~'
+             label: I18N_OPENXPKI_UI_WORKFLOW_FIELD_CERT_VALIDITY_OPTION_DEFAULT
+           - value: '+000045'
+             label: I18N_OPENXPKI_UI_WORKFLOW_FIELD_CERT_VALIDITY_OPTION_SHORT
+
+    notafter:
+        label: I18N_OPENXPKI_UI_WORKFLOW_FIELD_CERT_VALIDITY_LABEL
+        name: notafter
+        format: styled
+        template: >
+            [% IF value %]attention:I18N_OPENXPKI_UI_WORKFLOW_FIELD_CERT_VALIDITY_OPTION_SHORT[% END %]
 
     # output only, filled by check_policy activities
     check_policy_dns:
