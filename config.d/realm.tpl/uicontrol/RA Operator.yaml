@@ -41,6 +41,8 @@ main:
       - label: I18N_OPENXPKI_UI_MENU_HEAD_ENROLLMENT
       - key:   workflow!index!wf_type!release_transaction_lock
         label: I18N_OPENXPKI_UI_WORKFLOW_TYPE_RELEASE_LOCK_LABEL
+      - key:   workflow!index!wf_type!ratoken_update
+        label: I18N_OPENXPKI_UI_WORKFLOW_TYPE_RATOKEN_LABEL
       - label: I18N_OPENXPKI_UI_MENU_HEAD_MISC
       - key:   workflow!index!wf_type!set_motd
         label: I18N_OPENXPKI_UI_MENU_SET_MOTD

@@ -1,7 +1,13 @@
+# This workflow generates a new key pair / certificate and registers it
+# as token for the "scep" alias. It reads the password for the key from
+# credentials.ratoken and stores the key using its KEY_IDENTIFIER.
+# The certificate is created using the special profile ratoken.
+# Make sure that profile and crypto.token setup match this assumptions
+
 head:
-    prefix: sceptoken
-    label: I18N_OPENXPKI_UI_WORKFLOW_TYPE_SCEP_TOKEN_LABEL
-    description: I18N_OPENXPKI_UI_WORKFLOW_TYPE_SCEP_TOKEN_DESC
+    prefix: ratoken
+    label: I18N_OPENXPKI_UI_WORKFLOW_TYPE_RATOKEN_LABEL
+    description: I18N_OPENXPKI_UI_WORKFLOW_TYPE_RATOKEN_DESC
 
 
 state:
@@ -16,8 +22,8 @@ state:
           - global_set_error_not_in_renewal_window > CANCELED ? has_subject_duplicate global_is_system_role
 
     CERT_EXISTS:
-        label: I18N_OPENXPKI_UI_WORKFLOW_STATE_SCEP_TOKEN_CERT_EXISTS_LABEL
-        description: I18N_OPENXPKI_UI_WORKFLOW_STATE_SCEP_TOKEN_CERT_EXISTS_DESC
+        label: I18N_OPENXPKI_UI_WORKFLOW_STATE_RATOKEN_CERT_EXISTS_LABEL
+        description: I18N_OPENXPKI_UI_WORKFLOW_STATE_RATOKEN_CERT_EXISTS_DESC
         action:
           - global_cancel > CANCELED
           - global_noop > PREPARE
@@ -53,15 +59,15 @@ action:
     initialize:
         class: OpenXPKI::Server::Workflow::Activity::Tools::SetContext
         param:
-            cert_profile: tls_server
-            cert_subject_style: scep_internal
+            cert_profile: ratoken
+            cert_subject_style: internal
             cert_subject_parts:
-                hostname: SCEP RA
+                hostname: oxira
 
     check_cert_exists:
         class: OpenXPKI::Server::Workflow::Activity::CSR::CheckPolicySubjectDuplicate
         param:
-           allow_renewal_period: "+000060"
+           allow_renewal_period: "+000045"
 
     generate_key:
         class: OpenXPKI::Server::Workflow::Activity::NICE::GenerateKey
@@ -74,9 +80,10 @@ action:
             target_key: _private_key
 
     get_password_from_config:
-        class: OpenXPKI::Server::Workflow::Activity::Tools::SetContext
+        class: OpenXPKI::Server::Workflow::Activity::Tools::Connector::GetValue
         param:
-            _map__password@: credentials.token
+            config_path: credentials.ratoken
+            target_key: _password
 
     generate_pkcs10:
         class: OpenXPKI::Server::Workflow::Activity::CSR::GeneratePKCS10
@@ -86,7 +93,7 @@ action:
     register_alias:
         class: OpenXPKI::Server::Workflow::Activity::Internal::RegisterAlias
         param:
-            group: scep
+            alias_group: scep
             target_key: alias
 
     persist_key:
@@ -113,7 +120,6 @@ acl:
         fail: 1
         resume: 1
         wakeup: 1
-
 
     RA Operator:
         creator: any

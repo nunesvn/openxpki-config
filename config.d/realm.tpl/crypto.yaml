@@ -14,6 +14,7 @@ token:
 
     # Template to create key, available vars are
     # ALIAS (ca-signer-1), GROUP (ca-signer), GENERATION (1)
+    # KEY_IDENTIFIER (00:AA:BB...), IDENTIFIER (aGSNY1Z...)
     key: /etc/openxpki/local/keys/[% PKI_REALM %]/[% ALIAS %].pem
 
     # possible values are OpenSSL, nCipher, LunaCA
@@ -34,6 +35,7 @@ token:
     # Default value for import, recorded in database, can be overriden
     secret: default
 
+  # use ALIAS as key as it makes debug and management easier
   ca-signer:
     inherit: default
     key_store: DATAPOOL
@@ -43,16 +45,19 @@ token:
     inherit: default
     key: /etc/openxpki/local/keys/[% ALIAS %].pem
 
+  # use KEY_IDENTIFIER as we might use the same key for multiple token
   ratoken:
     inherit: default
     key_store: DATAPOOL
-    key: "[% ALIAS %]"
+    key: "[% KEY_IDENTIFIER %]"
+    secert: ratoken
 
   scep:
     inherit: default
     backend: OpenXPKI::Crypto::Tool::LibSCEP
     key_store: DATAPOOL
-    key: "[% ALIAS %]"
+    key: "[% KEY_IDENTIFIER %]"
+    secert: ratoken
 
 # Define the secret groups
 secret:
@@ -61,4 +66,7 @@ secret:
         # if you do not want to share the secret just replace this line with
         # the config found in system.crypto. You can create additional secrets
         # by adding similar blocks with another key
+        import: 1
+
+    ratoken:
         import: 1
